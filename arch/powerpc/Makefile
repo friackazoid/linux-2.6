@@ -158,13 +158,22 @@ drivers-$(CONFIG_OPROFILE)	+= arch/powerpc/oprofile/
 # Default to zImage, override when needed
 all: zImage
 
-CPPFLAGS_vmlinux.lds	:= -Upowerpc
-
 BOOT_TARGETS = zImage zImage.initrd uImage zImage% dtbImage% treeImage.% cuImage.% simpleImage.%
 
 PHONY += $(BOOT_TARGETS)
 
 boot := arch/$(ARCH)/boot
+
+ifeq ($(CONFIG_RELOCATABLE),y)
+quiet_cmd_relocs_check = CALL    $<
+      cmd_relocs_check = perl $< "$(OBJDUMP)" "$(obj)/vmlinux"
+
+PHONY += relocs_check
+relocs_check: arch/powerpc/relocs_check.pl vmlinux
+	$(call cmd,relocs_check)
+
+zImage: relocs_check
+endif
 
 $(BOOT_TARGETS): vmlinux
 	$(Q)$(MAKE) ARCH=ppc64 $(build)=$(boot) $(patsubst %,$(boot)/%,$@)
@@ -182,8 +191,8 @@ define archhelp
   @echo '  simpleImage.<dt> - Firmware independent image.'
   @echo '  treeImage.<dt>  - Support for older IBM 4xx firmware (not U-Boot)'
   @echo '  install         - Install kernel using'
-  @echo '                    (your) ~/bin/installkernel or'
-  @echo '                    (distribution) /sbin/installkernel or'
+  @echo '                    (your) ~/bin/$(INSTALLKERNEL) or'
+  @echo '                    (distribution) /sbin/$(INSTALLKERNEL) or'
   @echo '                    install to $$(INSTALL_PATH) and run lilo'
   @echo '  *_defconfig     - Select default config from arch/$(ARCH)/configs'
   @echo ''
@@ -210,7 +219,7 @@ archprepare: checkbin
 
 # Use the file '.tmp_gas_check' for binutils tests, as gas won't output
 # to stdout and these checks are run even on install targets.
-TOUT	:= .tmp_gas_check
+TOUT	:= $(T).tmp_gas_check
 # Ensure this is binutils 2.12.1 (or 2.12.90.0.7) or later for altivec
 # instructions.
 # gcc-3.4 and binutils-2.14 are a fatal combination.

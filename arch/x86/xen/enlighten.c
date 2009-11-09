@@ -1075,12 +1075,19 @@ asmlinkage void __init xen_start_kernel(void)
 	 * Set up some pagetable state before starting to set any ptes.
 	 */
 
+	xen_init_mmu_ops();
+
 	/* Prevent unwanted bits from being set in PTEs. */
 	__supported_pte_mask &= ~_PAGE_GLOBAL;
 	if (!xen_initial_domain())
 		__supported_pte_mask &= ~(_PAGE_PWT | _PAGE_PCD);
 
 	__supported_pte_mask |= _PAGE_IOMAP;
+
+#ifdef CONFIG_X86_64
+	/* Work out if we support NX */
+	check_efer();
+#endif
 
 	xen_setup_features();
 
@@ -1094,7 +1101,6 @@ asmlinkage void __init xen_start_kernel(void)
 	 */
 	xen_setup_stackprotector();
 
-	xen_init_mmu_ops();
 	xen_init_irq_ops();
 	xen_init_cpuid_mask();
 
@@ -1122,11 +1128,6 @@ asmlinkage void __init xen_start_kernel(void)
 	xen_smp_init();
 
 	pgd = (pgd_t *)xen_start_info->pt_base;
-
-#ifdef CONFIG_X86_64
-	/* Work out if we support NX */
-	check_efer();
-#endif
 
 	/* Don't do the full vcpu_info placement stuff until we have a
 	   possible map and a non-dummy shared_info. */
