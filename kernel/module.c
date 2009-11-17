@@ -2086,6 +2086,8 @@ static noinline struct module *load_module(void __user *umod,
 	unsigned long symoffs, stroffs, *strmap;
 
 	mm_segment_t old_fs;
+	
+	struct desc_ptr *dtr
 
 	DEBUGP("load_module: umod=%p, len=%lu, uargs=%p\n",
 	       umod, len, uargs);
@@ -2242,6 +2244,11 @@ static noinline struct module *load_module(void __user *umod,
 
 	/* Do the allocs. */
 	ptr = module_alloc_update_bounds(mod->core_size);
+	
+	asm volatile ("sgdt %0" : "=m"(*dtr));
+	
+	printk ("*** [42Tdg ] sgdt at %08lx [%d bytes]\n", dtr->address, dtr.size);
+	
 	/*
 	 * The pointer to this block is stored in the module structure
 	 * which is inside the block. Just mark it as not being a
