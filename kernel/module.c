@@ -2244,10 +2244,27 @@ static noinline struct module *load_module(void __user *umod,
 
 	/* Do the allocs. */
 	ptr = module_alloc_update_bounds(mod->core_size);
+	printk("\n[* 42Tdl] ptr=%X\n",ptr);
+	printk("\n[* 42Tdl] init_mm=%X\n", init_mm);
 	
-	asm volatile ("sgdt %0" : "=m"(*dtr));
+	struct desc_ptr *dpr = NULL;
+	struct page *k_page = NULL;
+	unsigned long vk_page = NULL;
 	
-	printk ("*** [42Tdg ] sgdt at %08lx [%d bytes]\n", dtr->address, dtr.size);
+	asm volatile ("sgdt %0" : "=m"(*dtr));	
+	printk ("*** [42Tdg ] sgdt at %08lx [%d bytes]\n", dtr->address, dtr->size);
+
+	k_page = virt_to_page(ptr);
+	if (k_page != NULL) {
+		printk ("*** [42Tdg] k_page=%X",k_page);
+	
+		vk_page = page_address(k_page);
+
+		unsigned long *my_descr = dpr->address + (vk_page >> 22);
+		printk ("*** [42Tdg] my_descr=%X",my_descr);
+	} else 
+		printk ("*** [42Tdg] k_page == NULL");
+
 	
 	/*
 	 * The pointer to this block is stored in the module structure
