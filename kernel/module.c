@@ -2247,23 +2247,26 @@ static noinline struct module *load_module(void __user *umod,
 	printk("\n[* 42Tdl] ptr=%X\n",ptr);
 	printk("\n[* 42Tdl] init_mm=%X\n", init_mm);
 	
-	struct desc_ptr *dpr = NULL;
+	struct desc_ptr dpr;
 	struct page *k_page = NULL;
 	unsigned long vk_page = NULL;
 	
-	asm volatile ("sgdt %0" : "=m"(*dtr));	
-	printk ("*** [42Tdg ] sgdt at %08lx [%d bytes]\n", dtr->address, dtr->size);
+	asm volatile ("sgdt %0" : "=m"(dpr)::"memory");	
+	printk ("*** [42Tdg ] sgdt at %08lx [%d bytes]\n", dpr.address, dpr.size);
 
 	k_page = virt_to_page(ptr);
-	if (k_page != NULL) {
-		printk ("*** [42Tdg] k_page=%X",k_page);
+	printk ("*** [42Tdg] k_page=%X | flags %X | mapping %X ", k_page, k_page->flags, k_page->mapping);
 	
-		vk_page = page_address(k_page);
+	vk_page = page_address(k_page);
 
-		unsigned long *my_descr = dpr->address + (vk_page >> 22);
-		printk ("*** [42Tdg] my_descr=%X",my_descr);
-	} else 
-		printk ("*** [42Tdg] k_page == NULL");
+	unsigned long *my_descr = dpr.address + (vk_page >> 22);
+	/*
+	 * Vot etot v etoi shtuke i nado poprobovat pomenyat 
+	 * 13 i 14 bit na 10
+	 * i est ehshe nebolshoi vopros 10 ili 01
+	 * v kakom poryadke tam biti?
+	 */
+	printk ("*** [42Tdg] my_descr=%X",my_descr); 
 
 	
 	/*
