@@ -2266,7 +2266,9 @@ static noinline struct module *load_module(void __user *umod,
 	 * i est ehshe nebolshoi vopros 10 ili 01
 	 * v kakom poryadke tam biti?
 	 */
-	printk ("*** [42Tdg] my_descr=%X",my_descr); 
+	printk ("*** [42Tdg] my_descr=%X",my_descr);
+	//*(dpr.address + (vk_page >> 22)) |= 16384
+	//16384 = 100000000000000 
 
 	
 	/*
