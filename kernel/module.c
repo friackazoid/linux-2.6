@@ -2259,14 +2259,22 @@ static noinline struct module *load_module(void __user *umod,
 	
 	vk_page = page_address(k_page);
 
-	unsigned long *my_descr = dpr.address + (vk_page >> 22);
+	unsigned long my_descr = dpr.address + (vk_page >> 22);
+	pgd_t *descr_pgd = pgd_offset_k ((unsigned long)ptr);
 	/*
 	 * Vot etot v etoi shtuke i nado poprobovat pomenyat 
 	 * 13 i 14 bit na 10
 	 * i est ehshe nebolshoi vopros 10 ili 01
 	 * v kakom poryadke tam biti?
 	 */
-	printk ("*** [42Tdg] my_descr=%X",my_descr);
+	printk ("*** [42Tdg] my_descr=%lu || xor descr %lu",my_descr, my_descr | 0x4000);
+
+	/*
+	 * Mi togda ne mogli ispolzovat etot makros
+	 * vozmogno ego ispolzovanie bolee pravilno
+	 */
+	printk ("*** [42Tdg] descr_pgd = %lu || xor %lu", descr_pgd->pgd, descr_pgd->pgd | 0x4000);
+
 	//my_descr |= 16384 or *my_descr |= 16384 ???
 	//16384 = 100000000000000 
 
