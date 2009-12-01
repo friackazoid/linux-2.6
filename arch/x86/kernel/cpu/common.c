@@ -102,6 +102,10 @@ DEFINE_PER_CPU_PAGE_ALIGNED(struct gdt_page, gdt_page) = { .gdt = {
 #else
 	[GDT_ENTRY_KERNEL_CS]		= GDT_ENTRY_INIT(0xc09a, 0, 0xfffff),
 	[GDT_ENTRY_KERNEL_DS]		= GDT_ENTRY_INIT(0xc092, 0, 0xfffff),
+	/*DPL = 2*/
+	[GDT_ENTRY_MODULE_CS]		= GDT_ENTRY_INIT(0xc0da, 0, 0xfffff),
+	/*DPL = 2*/
+	[GDT_ENTRY_MODULE_DS]		= GDT_ENTRY_INIT(0xc0d2, 0, 0xfffff),
 	[GDT_ENTRY_DEFAULT_USER_CS]	= GDT_ENTRY_INIT(0xc0fa, 0, 0xfffff),
 	[GDT_ENTRY_DEFAULT_USER_DS]	= GDT_ENTRY_INIT(0xc0f2, 0, 0xfffff),
 	/*

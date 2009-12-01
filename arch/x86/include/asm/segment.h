@@ -30,8 +30,8 @@
  *   2 - reserved
  *   3 - reserved
  *
- *   4 - unused			<==== new cacheline
- *   5 - unused
+ *   4 - modules code segment
+ *   5 - modules data segment
  *
  *  ------- start of TLS (Thread-Local Storage) segments:
  *
@@ -69,15 +69,22 @@
 #define GDT_ENTRY_TLS_MIN	6
 #define GDT_ENTRY_TLS_MAX 	(GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES - 1)
 
+/* why???
 #define GDT_ENTRY_DEFAULT_USER_CS	14
-
 #define GDT_ENTRY_DEFAULT_USER_DS	15
+*/
 
-#define GDT_ENTRY_KERNEL_BASE	12
+/*New segments especialy for modules*/
+#define GDT_ENTRY_MODULE_CS		4
+#define GDT_ENTRY_MODULE_DS		5
+
+#define GDT_ENTRY_KERNEL_BASE		12
 
 #define GDT_ENTRY_KERNEL_CS		(GDT_ENTRY_KERNEL_BASE + 0)
-
 #define GDT_ENTRY_KERNEL_DS		(GDT_ENTRY_KERNEL_BASE + 1)
+
+#define GDT_ENTRY_DEFAULT_USER_CS	(GDT_ENTRY_KERNEL_BASE + 2) 
+#define GDT_ENTRY_DEFAULT_USER_DS	(GDT_ENTRY_KERNEL_BASE + 3)
 
 #define GDT_ENTRY_TSS			(GDT_ENTRY_KERNEL_BASE + 4)
 #define GDT_ENTRY_LDT			(GDT_ENTRY_KERNEL_BASE + 5)
@@ -182,8 +189,10 @@
 
 #endif
 
-#define __KERNEL_CS	(GDT_ENTRY_KERNEL_CS * 8)
-#define __KERNEL_DS	(GDT_ENTRY_KERNEL_DS * 8)
+#define __KERNEL_CS	(GDT_ENTRY_KERNEL_CS* 8)
+#define __KERNEL_DS	(GDT_ENTRY_KERNEL_DS* 8)
+#define __MODULE_CS	(GDT_ENTRY_MODULE_CS* 8)
+#define __MODULE_DS	(GDT_ENTRY_MODULE_DS* 8)
 #define __USER_DS     (GDT_ENTRY_DEFAULT_USER_DS* 8 + 3)
 #define __USER_CS     (GDT_ENTRY_DEFAULT_USER_CS* 8 + 3)
 #ifndef CONFIG_PARAVIRT
@@ -192,6 +201,8 @@
 
 /* User mode is privilege level 3 */
 #define USER_RPL		0x3
+/* Module ring privileges level 2 */
+#define MODULE_RPL		0x2
 /* LDT segment has TI set, GDT has it cleared */
 #define SEGMENT_LDT		0x4
 #define SEGMENT_GDT		0x0
