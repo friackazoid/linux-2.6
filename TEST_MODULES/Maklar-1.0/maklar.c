@@ -40,20 +40,24 @@ static int __init init_prot(void){
 	unsigned long vk_page = NULL;
 	pte_t *kpte;
 	unsigned char* str= "test_module";
+	unsigned long xer;
 
-	DEBUGLOG(("[* 42Tdbg] - Test Module Enter %s\n", str));
+	DEBUGLOG(("[*** 42Tdbg] - Test Module Enter %s\n", str));
+
+	__asm__ volatile ("mov %%cr3, %0\n":"=r"(xer));
+	DEBUGLOG (("[*** 42Tdbg] - cr3 = %ul", xer));
 
 //	asm volatile ( "sgdt %0" : "=m"(*dtr));
 
 /**** С памятью руками ***/
 
-	k_page = virt_to_page(str); // дресс дескриптора страницы
+//	k_page = virt_to_page(str); // дресс дескриптора страницы
 
-	DEBUGLOG(("[* 42Tdbg] - k_page = %X |\ flags = %X | \ mapping = %X | \ virtual = %X \\n", k_page, k_page->flags, k_page->mapping, NULL));
+//	DEBUGLOG(("[* 42Tdbg] - k_page = %X |\ flags = %X | \ mapping = %X | \ virtual = %X \\n", k_page, k_page->flags, k_page->mapping, NULL));
 
 //	vk_page = page_address(k_page); // линейный адресс ассоциированный со страничным кадром
 
-	DEBUGLOG (("[* 42Tdbg] - vk_page = %X", k_page->virtual));
+//	DEBUGLOG (("[* 42Tdbg] - vk_page = %X", k_page->virtual));
 
 /*	unsigned long *my_decr = my_gdt + (vk_page >> 22);
 	DEBUGLOG(("[prot_0] - Offset in GDT = %X \n", my_decr ));
