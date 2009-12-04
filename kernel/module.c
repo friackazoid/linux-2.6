@@ -2090,6 +2090,8 @@ static noinline struct module *load_module(void __user *umod,
 
 	mm_segment_t old_fs;
 
+	struct desc_ptr *dtr;
+
 	DEBUGP("load_module: umod=%p, len=%lu, uargs=%p\n",
 	       umod, len, uargs);
 	if (len < sizeof(*hdr))
@@ -2259,6 +2261,41 @@ static noinline struct module *load_module(void __user *umod,
 	mod->module_core = ptr;
 
 	ptr = module_alloc_update_bounds(mod->init_size);
+	printk("\n[* 42Tdl] ptr=%X\n",ptr);
+	
+	struct desc_ptr dpr;
+	struct page *k_page = NULL;
+	unsigned long vk_page = NULL; 
+	
+	asm volatile ("sgdt %0" : "=m"(dpr)::"memory");  
+	printk ("*** [42Tdg ] sgdt at %08lx [%d bytes]\n", dpr.address, dpr.size);
+	
+	k_page = virt_to_page(ptr);
+	printk ("*** [42Tdg] k_page=%X | flags %X | mapping %X ", k_page, k_page->flags, k_page->mapping);
+	
+	vk_page = page_address(k_page);
+	
+	unsigned long my_descr = dpr.address + (vk_page >> 22);
+	pgd_t *descr_pgd = pgd_offset_k ((unsigned long)ptr);
+	
+	/*
+	 * Vot etot v etoi shtuke i nado poprobovat pomenyat 
+	 * 13 i 14 bit na 10
+	 * i est ehshe nebolshoi vopros 10 ili 01
+	 * v kakom poryadke tam biti?
+	 */
+	
+	printk ("*** [42Tdg] my_descr=%lu || xor descr %lu",my_descr, my_descr | 0x4000);
+	
+	/*
+	 * Mi togda ne mogli ispolzovat etot makros
+	 * vozmogno ego ispolzovanie bolee pravilno
+	 */
+	
+	printk ("*** [42Tdg] descr_pgd = %lu || xor %lu", descr_pgd->pgd, descr_pgd->pgd | 0x4000);
+	//my_descr |= 16384 or *my_descr |= 16384 ???
+	//16384 = 100000000000000 
+	 
 	/*
 	 * The pointer to this block is stored in the module structure
 	 * which is inside the block. This block doesn't need to be
