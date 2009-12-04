@@ -2090,8 +2090,6 @@ static noinline struct module *load_module(void __user *umod,
 
 	mm_segment_t old_fs;
 
-	struct desc_ptr *dtr;
-
 	DEBUGP("load_module: umod=%p, len=%lu, uargs=%p\n",
 	       umod, len, uargs);
 	if (len < sizeof(*hdr))

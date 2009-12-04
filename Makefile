@@ -1,7 +1,7 @@
 VERSION = 2
 PATCHLEVEL = 6
 SUBLEVEL = 32
-EXTRAVERSION = -rc8-git1
+EXTRAVERSION = -rc8-git5
 NAME = Man-Eating Seals of Antiquity
 
 # *DOCUMENTATION*
