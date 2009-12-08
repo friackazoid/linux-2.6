@@ -2627,6 +2627,10 @@ SYSCALL_DEFINE3(init_module, void __user *, umod,
 	do_mod_ctors(mod);
 	/* Start the module */
 	if (mod->init != NULL)
+		/*
+		 * Vot tyt nam nado zadat conext
+		 * kak eto delaen start_thread
+		 */
 		ret = do_one_initcall(mod->init);
 	if (ret < 0) {
 		/* Init routine failed: abort.  Try to protect us from

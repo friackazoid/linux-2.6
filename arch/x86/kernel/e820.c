@@ -1417,6 +1417,10 @@ void __init e820_reserve_resources_late(void)
 	}
 }
 
+/*
+ * Stroit karty fizicheskiah adresov 
+ * sm Bovet Chezarety str 108
+ */
 char *__init default_machine_specific_memory_setup(void)
 {
 	char *who = "BIOS-e820";
