@@ -224,7 +224,7 @@ int kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 }
 EXPORT_SYMBOL(kernel_thread);
 
-int start_module_thread (int (*fn)(void* ), void *arg, unsigned long flags)
+int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {
 	struct pt_regs regs;
 
@@ -242,7 +242,6 @@ int start_module_thread (int (*fn)(void* ), void *arg, unsigned long flags)
 	regs.cs = __MODULE_CS;
 	regs.flags = X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | 0x2;
 
-	/* Ok, create the new process.. */
 	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
 }
 

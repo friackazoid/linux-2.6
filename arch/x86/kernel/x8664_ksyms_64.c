@@ -18,6 +18,7 @@ EXPORT_SYMBOL(mcount);
 #endif
 
 EXPORT_SYMBOL(kernel_thread);
+EXPORT_SYMBOL(start_module_thread);
 
 EXPORT_SYMBOL(__get_user_1);
 EXPORT_SYMBOL(__get_user_2);
