@@ -2596,6 +2596,18 @@ static void do_mod_ctors(struct module *mod)
 #endif
 }
 
+//extern int start_module_thred (int (*fn)(void*), void *arg, unsigned long flags);
+
+static int do_module_init_on_second_ring (initcall_t fn)
+{
+	int ret = 0;
+
+//	ret = start_module_thread (fn);
+	ret = start_module_thread (fn, NULL, CLONE_FS);
+
+	return ret;
+}
+
 /* This is where the real work happens */
 SYSCALL_DEFINE3(init_module, void __user *, umod,
 		unsigned long, len, const char __user *, uargs)
@@ -2631,7 +2643,12 @@ SYSCALL_DEFINE3(init_module, void __user *, umod,
 		 * Vot tyt nam nado zadat conext
 		 * kak eto delaen start_thread
 		 */
-		ret = do_one_initcall(mod->init);
+
+		/*
+		 * TODO: add x86 define macros
+		 */
+		ret = do_module_init_on_second_ring (mod->init);
+		//ret = do_one_initcall(mod->init);
 	if (ret < 0) {
 		/* Init routine failed: abort.  Try to protect us from
                    buggy refcounters. */

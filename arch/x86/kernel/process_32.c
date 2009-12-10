@@ -224,6 +224,30 @@ int kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 }
 EXPORT_SYMBOL(kernel_thread);
 
+int start_module_thread (int (*fn)(void* ), void *arg, unsigned long flags)
+{
+	struct pt_regs regs;
+
+	memset (&regs, 0, sizeof(regs));
+
+	regs.bx = (unsigned long) fn;
+	regs.dx = (unsigned long) arg;
+
+	regs.ds = __MODULE_DS;
+	regs.es = __MODULE_DS;
+	regs.fs = __KERNEL_PERCPU;
+	regs.gs = __KERNEL_STACK_CANARY;
+	regs.orig_ax = -1;
+	regs.ip = (unsigned long) kernel_thread_helper;
+	regs.cs = __MODULE_CS;
+	regs.flags = X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | 0x2;
+
+	/* Ok, create the new process.. */
+	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
+}
+
+EXPORT_SYMBOL(start_module_thread);
+
 void release_thread(struct task_struct *dead_task)
 {
 	BUG_ON(dead_task->mm);
