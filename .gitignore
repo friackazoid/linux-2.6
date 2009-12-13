@@ -29,7 +29,6 @@
 *.lzma
 *.patch
 *.gcno
-*.idb
 
 #
 # Top-level generic files
@@ -76,5 +75,3 @@ GTAGS
 *.orig
 *~
 \#*#
-
-Kconfig
