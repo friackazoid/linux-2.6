@@ -1,4 +1,4 @@
-obj-m := maklar.o
+obj-m := maklar2.o
 
 all:
 	$(MAKE) -C /lib/modules/`uname -r`/build M=`pwd` modules
