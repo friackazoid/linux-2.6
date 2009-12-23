@@ -30,8 +30,8 @@
  *   2 - reserved
  *   3 - reserved
  *
- *   4 - unused			<==== new cacheline
- *   5 - unused
+ *   4 - modules code segment
+ *   5 - modules data segment
  *
  *  ------- start of TLS (Thread-Local Storage) segments:
  *
@@ -69,12 +69,17 @@
 #define GDT_ENTRY_TLS_MIN	6
 #define GDT_ENTRY_TLS_MAX 	(GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES - 1)
 
+
 #define GDT_ENTRY_DEFAULT_USER_CS	14
 #define GDT_ENTRY_DEFAULT_USER_DS	15
 
 #define GDT_ENTRY_MODULE_BASE		4
 
 #define GDT_ENTRY_KERNEL_BASE	12
+
+#define GDT_ENTRY_MODULE_CS		(GDT_ENTRY_MODULE_BASE + 0)
+#define GDT_ENTRY_MODULE_DS		(GDT_ENTRY_MODULE_BASE + 1)
+
 
 #define GDT_ENTRY_KERNEL_CS		(GDT_ENTRY_KERNEL_BASE + 0)
 
