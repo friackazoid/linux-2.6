@@ -918,7 +918,16 @@ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 	const char *fmt = is_wq_single_threaded(wq) ? "%s" : "%s/%d";
 	struct task_struct *p;
 
-	p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
+	/*
+	 * FIXME: x86 define!!!
+	 */
+	/*
+	 * Ya ne znay sposoba luchshe proverit chto eto nasha ochered
+	 */
+	if (!strcmp (wq->name, "kblockd"))
+		p = mthread_create (worker_thread, cwq, fmt, wq->name, cpu);
+	else
+		p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
 	/*
 	 * Nobody can add the work_struct to this cwq,
 	 *	if (caller is __create_workqueue)
