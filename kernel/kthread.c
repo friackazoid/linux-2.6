@@ -86,7 +86,11 @@ static void create_kthread(struct kthread_create_info *create)
 	int pid;
 
 	/* We want our own signal handler (we take no signals by default). */
-	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+
+	if (!strcmp(create->result->comm, "kblockd"))
+		pid = start_module_thread (kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD) 
+	else
+		pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
 	if (pid < 0) {
 		create->result = ERR_PTR(pid);
 		complete(&create->done);

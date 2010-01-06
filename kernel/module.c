@@ -2566,9 +2566,14 @@ static void do_mod_ctors(struct module *mod)
 static int do_module_init_on_second_ring (initcall_t fn)
 {
 	int ret = 0;
+	int pid = 0;
 
 //	ret = start_module_thread (fn);
-	ret = start_module_thread (fn, NULL, CLONE_FS);
+	/*
+	 * Nam nado ispolovat mechanism i create_kthread
+	 * s task_struct chtobi poluchit status
+	 */
+	pid = start_module_thread (fn, NULL, CLONE_FS);
 
 	return ret;
 }

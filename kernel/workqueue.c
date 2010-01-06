@@ -924,9 +924,13 @@ static int create_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
 	/*
 	 * Ya ne znay sposoba luchshe proverit chto eto nasha ochered
 	 */
-	if (!strcmp (wq->name, "kblockd"))
-		p = mthread_create (worker_thread, cwq, fmt, wq->name, cpu);
-	else
+//	if (!strcmp (wq->name, "kblockd"))
+//		p = mthread_create (worker_thread, cwq, fmt, wq->name, cpu);
+//	else
+	/*
+	 * Mi reshili ne sozdavat svoi mthread a sdelat
+	 * vse vnutri kthread
+	 */
 		p = kthread_create(worker_thread, cwq, fmt, wq->name, cpu);
 	/*
 	 * Nobody can add the work_struct to this cwq,

@@ -216,6 +216,7 @@ EXPORT_SYMBOL(kernel_thread);
 int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {
 	int ret = 0;
+	int pid = 0;
 	struct pt_regs regs;
 
 	memset (&regs, 0, sizeof(regs));
@@ -232,9 +233,9 @@ int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 	regs.cs = __MODULE_CS;
 	regs.flags = X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | 0x2;
 
-	do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
+	pid = do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0, &regs, 0, NULL, NULL);
 	
-	return ret;
+	return pid;
 }
 
 EXPORT_SYMBOL(start_module_thread);
