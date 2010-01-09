@@ -385,6 +385,7 @@ extern struct mutex module_mutex;
    (IDE & SCSI) require entry into the module during init.*/
 static inline int module_is_live(struct module *mod)
 {
+	printk ("*** [42Tdbg] MODULE_NAME = %s\n", mod->name);
 	return mod->state != MODULE_STATE_GOING;
 }
 
