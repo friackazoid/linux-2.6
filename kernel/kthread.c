@@ -85,12 +85,15 @@ static void create_kthread(struct kthread_create_info *create)
 {
 	int pid;
 
-	/* We want our own signal handler (we take no signals by default). */
+	/*
+	 * Eto nifiga ne rabotaet
+	 */
+//	if ( (create->result) && (create->result != -1) && !strcmp(create->result->comm, "kblockd"))
+//		pid = start_module_thread (kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD); 
+//	else
 
-	if ( (create->result) && (create->result != -1) && !strcmp(create->result->comm, "kblockd"))
-		pid = start_module_thread (kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD); 
-	else
-		pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+	/* We want our own signal handler (we take no signals by default). */
+	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
 	if (pid < 0) {
 		create->result = ERR_PTR(pid);
 		complete(&create->done);
@@ -131,6 +134,11 @@ struct task_struct *kthread_create(int (*threadfn)(void *data),
 	list_add_tail(&create.list, &kthread_create_list);
 	spin_unlock(&kthread_create_lock);
 
+	/*
+	 * Zapuskaetsya process dobavlaushii rabochii ocheredi
+	 * v sheduler rabochei ocheredi. Posle etogo create.task_struct->thread inicializiruetsya
+	 */
+
 	wake_up_process(kthreadd_task);
 	wait_for_completion(&create.done);
 
@@ -142,6 +150,15 @@ struct task_struct *kthread_create(int (*threadfn)(void *data),
 		vsnprintf(create.result->comm, sizeof(create.result->comm),
 			  namefmt, args);
 		va_end(args);
+
+		/*
+		 *	FIXME: x86 define
+		 */
+
+		if (!strncmp(create.result->comm, "kblockd", 7)) {
+			create.result->thread.sysenter_cs = 35;
+		}
+
 		/*
 		 * root may have changed our (kthreadd's) priority or CPU mask.
 		 * The kernel thread should not inherit these properties.
