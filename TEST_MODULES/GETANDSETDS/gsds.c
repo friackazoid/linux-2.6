@@ -16,8 +16,10 @@ static int __init hello_init(void)
 	printk("[*] CSis = %X, ( %X ) \n", cs_s, __KERNEL_CS);
 
 	printk("[*] Start set cs: \n");
-		__asm__ __volatile__( "movl %0, %%cs  \n\t"
+		__asm__ __volatile__( "movl %0, %%eax  \n\t"
+				      "mov %%eax, %%cs \n\t"
 					:: "r" (__USER_CS)
+					:"%eax"
 					);
 	printk("[*] Cs is set\n");
 		__asm__ __volatile__( "movl %%cs, %0 \n\t"
