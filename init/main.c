@@ -662,6 +662,12 @@ asmlinkage void __init start_kernel(void)
 	proc_caches_init();
 	buffer_init();
 	key_init();
+	
+	
+	/*
+	 *  Eto i est te LSM chto nam nuzani
+	 *  ih nado na pervoe kolco
+	 */
 	security_init();
 	vfs_caches_init(totalram_pages);
 	radix_tree_init();

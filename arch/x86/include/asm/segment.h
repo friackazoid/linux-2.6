@@ -62,8 +62,8 @@
  *  26 - ESPFIX small SS
  *  27 - per-cpu			[ offset to per-cpu data area ]
  *  28 - stack_canary-20		[ for stack protector ]
- *  29 - unused
- *  30 - unused
+ *  29 - Master Control CS
+ *  30 - Master Control DS
  *  31 - TSS for double fault handler
  */
 #define GDT_ENTRY_TLS_MIN	6
@@ -74,12 +74,15 @@
 #define GDT_ENTRY_DEFAULT_USER_DS	15
 
 #define GDT_ENTRY_MODULE_BASE		4
+#define GDT_ENTRY_MASTER_CONTROL_BASE	29
 
 #define GDT_ENTRY_KERNEL_BASE	12
 
 #define GDT_ENTRY_MODULE_CS		(GDT_ENTRY_MODULE_BASE + 0)
 #define GDT_ENTRY_MODULE_DS		(GDT_ENTRY_MODULE_BASE + 1)
 
+#define GDY_ENTRY_MASTER_CONTROL_CS	(GDT_ENTRY_MASTER_CONTROL_BASE + 0)
+#define GDT_ENTRY_MASTER_CONTROL_DS	(GDT_ENTRY_MASTER_CONTROL_BASE + 1)
 
 #define GDT_ENTRY_KERNEL_CS		(GDT_ENTRY_KERNEL_BASE + 0)
 
@@ -192,6 +195,8 @@
 #define __KERNEL_DS	(GDT_ENTRY_KERNEL_DS * 8)
 #define __MODULE_CS	(GDT_ENTRY_MODULE_CS* 8 + 3)
 #define __MODULE_DS	(GDT_ENTRY_MODULE_DS* 8 + 3)
+#define __MASTER_CONTROL_CS	(GDT_ENTRY_MASTER_CONTROL_CS* 8 + 3)
+#define __MASTER_CONTROL_DS	(GDT_ENTRY_MASTER_CONTROL_DS* 8 + 3)
 #define __USER_DS     (GDT_ENTRY_DEFAULT_USER_DS* 8 + 3)
 #define __USER_CS     (GDT_ENTRY_DEFAULT_USER_CS* 8 + 3)
 #ifndef CONFIG_PARAVIRT
