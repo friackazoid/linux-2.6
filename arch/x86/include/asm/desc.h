@@ -362,7 +362,7 @@ static inline void set_system_intr_gate(unsigned int n, void *addr)
 	_set_gate(n, GATE_INTERRUPT, addr, 0x3, 0, __KERNEL_CS);
 }
 
-static inline void set_system_tarp_gate_on_mc (unsigned int n, void *addr)
+static inline void set_system_trap_gate_on_mc (unsigned int n, void *addr)
 {
 	BUG_ON ((unsigned)n > 0xFF);
 	_set_gate(n, GATE_TRAP, addr, 0x3, 0x1, __MASTER_CONTROL_CS);
