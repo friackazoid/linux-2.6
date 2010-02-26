@@ -139,6 +139,8 @@
 
 /* User mode is privilege level 3 */
 #define USER_RPL		0x3
+/* Module mode is privilege level 2 */
+#define MODULE_RPL		0x2
 /* LDT segment has TI set, GDT has it cleared */
 #define SEGMENT_LDT		0x4
 #define SEGMENT_GDT		0x0

@@ -344,9 +344,15 @@
 #define __NR_perf_event_open	336
 #define __NR_recvmmsg		337
 
+/* Numbers of modules call */
+
+#define __SR_printk		0
+
+
 #ifdef __KERNEL__
 
 #define NR_syscalls 338
+#define SR_modcalls 1
 
 #define __ARCH_WANT_IPC_PARSE_VERSION
 #define __ARCH_WANT_OLD_READDIR
