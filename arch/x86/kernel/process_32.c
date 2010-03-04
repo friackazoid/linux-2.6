@@ -213,38 +213,21 @@ int kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 }
 EXPORT_SYMBOL(kernel_thread);
 
-int start_security_thread (int (*fn) (void*), void *arg)
+int start_security_thread_c (int (*fn) (void*), void *arg)
 {
 	unsigned long addr = fn;
-	unsigned long flags = 0;
-//	loadsegment (ds, __MASTER_CONTROL_DS);
-//	loadsegment (ss, __MASTER_CONTROL_DS);
-//	loadsegment (es, __MASTER_CONTROL_DS);
-//	loadsegment (fs, __MASTER_CONTROL_DS);
-//	loadsegment (gs, __MASTER_CONTROL_DS);
-
+	unsigned long flags = 0,i;
+	unsigned char i_stack[24];
+	unsigned char *i_thread_info = 0xc04d7fec;
+	
+	for(i=0;i<24;i++)
+		i_stack[i] =(unsigned char) *(i_thread_info +i);
+		
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-//		"\tcli\n"
-//		"\tmov $"STR(__MASTER_CONTROL_DS)", %%ax\n"
-//		"\tmov %%ax, %%ds\n"
-//		"\tmov %%ax, %%es\n"
-//		"\tmov %%ax, %%fs\n"
-//		"\tmov %%ax, %%gs\n"
-//		"\tmov %%esp, %%eax\n"
-//		"\tpushl %%eax\n"
-//		"\tpushl %1\n"
-//		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
-//		"\tpushl $1f\n"
-//		"\tiret\n"
-//		"\t1:\n"
-//		"\tcall *%0\n"
-//		"\tnop\n"
-//		"\tiret\n"
-		"\tmovl $2f,%%eax\n"
-		"\tpushl %%eax\n"
+		"\tcli\n"
 		"\tmovl $1f,%%eax\n"
 		"\tpushl %%eax\n"
 		"\tmovl %%esp,%%eax\n"
@@ -253,24 +236,68 @@ int start_security_thread (int (*fn) (void*), void *arg)
 		"\tpushl %1\n"
 		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
 		"\tpushl %0\n"
-	  	"\tiret\n"
+		"\tiret\n"
 		"\t1:\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\t2:\n"
 		"\tpopl %%eax\n"
-	        "\tpopl %%eax\n"
+		"\tpopl %%eax\n"
 		"\tpopl %%esp\n"
-		"\tpopl %%eax\n"
-		::"r"(addr), "r" (flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | X86_EFLAGS_NT |0x2): "eax", "memory");
-
-//	fn(arg);
+		"\tsti\n"
+	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+	
 #undef STR
 #undef __STR
 
+	for(i=0;i<24;i++)
+		*(i_thread_info + i ) = i_stack[i];
+		
 	return 0;
 }
-EXPORT_SYMBOL (start_security_thread);
+EXPORT_SYMBOL (start_security_thread_c);
+
+int start_security_thread_m (int (*fn) (void*), void *arg)
+{
+	unsigned long addr = fn;
+	unsigned long flags = 0,i;
+	unsigned char i_stack[24];
+	unsigned char *i_thread_info = 0xc04d7fec;
+	
+	for(i=0;i<24;i++)
+		i_stack[i] =(unsigned char) *(i_thread_info +i);
+		
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	__asm__ __volatile__ (
+		"\tcli\n"
+		"\tmovl $1f,%%eax\n"
+		"\tpushl %%eax\n"
+		"\tmovl %%esp,%%eax\n"
+		"\tpushl $"STR(__MODULE_DS)"\n"
+		"\tpushl %%eax\n"
+		"\tpushl %1\n"
+		"\tpushl $"STR(__MODULE_CS)"\n"
+		"\tpushl %0\n"
+		"\tiret\n"
+		"\t1:\n"
+		"\txor %%eax,%%eax\n"
+		"\tint $0x80\n"
+		"\tpopl %%eax\n"
+		"\tpopl %%eax\n"
+		"\tpopl %%esp\n"
+		"\tsti\n"
+	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+	
+#undef STR
+#undef __STR
+
+	for(i=0;i<24;i++)
+		*(i_thread_info + i ) = i_stack[i];
+		
+	return 0;	
+}
+EXPORT_SYMBOL (start_security_thread_m);
 
 int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {
