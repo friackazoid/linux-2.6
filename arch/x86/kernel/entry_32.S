@@ -528,6 +528,12 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
+	nop
+	test %eax, %eax
+	nop
+	jnz orig_int
+	nop
+	ret
 	RING0_INT_FRAME			# can't unwind into user space anyway
 	pushl %eax			# save orig_eax
 	CFI_ADJUST_CFA_OFFSET 4

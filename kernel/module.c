@@ -2561,17 +2561,16 @@ static void do_mod_ctors(struct module *mod)
 #endif
 }
 
-//extern int start_module_thred (int (*fn)(void*), void *arg, unsigned long flags);
-
 static int do_module_init_on_second_ring (initcall_t fn)
 {
 	int ret = 0;
 	int pid = 0;
 
-//	ret = start_module_thread (fn);
+	start_security_thread_m (fn, NULL);
 
-	pid = start_module_thread (fn, NULL, CLONE_FS);
-	sys_wait4(pid, (int __user *)&ret, 0, NULL);
+//	ret = start_module_thread (fn);l
+//	pid = start_module_thread (fn, NULL, CLONE_FS);
+//	sys_wait4(pid, (int __user *)&ret, 0, NULL);
 	return ret;
 }
 

@@ -213,6 +213,90 @@ int kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 }
 EXPORT_SYMBOL(kernel_thread);
 
+int start_security_thread_c (int (*fn) (void*), void *arg)
+{
+	unsigned long addr = fn;
+	unsigned long flags = 0,i;
+	unsigned char i_stack[24];
+	unsigned char *i_thread_info = 0xc04d7fec;
+	for(i=0;i<24;i++)
+		i_stack[i] =(unsigned char) *(i_thread_info +i);
+
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	__asm__ __volatile__ (
+		"\tcli\n"
+		"\tmovl $1f,%%eax\n"
+		"\tpushl %%eax\n"
+		"\tmovl %%esp,%%eax\n"
+		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
+		"\tpushl %%eax\n"
+		"\tpushl %1\n"
+		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
+		"\tpushl %0\n"
+		"\tiret\n"
+		"\t1:\n"
+		"\txor %%eax,%%eax\n"
+		"\tint $0x80\n"
+		"\tpopl %%eax\n"
+		"\tpopl %%eax\n"
+		"\tpopl %%esp\n"
+		"\tsti\n"
+		::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+
+#undef STR
+#undef __STR
+
+	for(i=0;i<24;i++)
+		*(i_thread_info + i ) = i_stack[i];
+
+	return 0;
+}
+EXPORT_SYMBOL (start_security_thread_c);
+
+int start_security_thread_m (int (*fn) (void*), void *arg)
+{
+	unsigned long addr = fn;
+	unsigned long flags = 0,i;
+	unsigned char i_stack[24];
+	unsigned char *i_thread_info = 0xc04d7fec;
+	for(i=0;i<24;i++)
+		i_stack[i] =(unsigned char) *(i_thread_info +i);
+
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	__asm__ __volatile__ (
+		"\tcli\n"
+		"\tmovl $1f,%%eax\n"
+		"\tpushl %%eax\n"
+		"\tmovl %%esp,%%eax\n"
+		"\tpushl $"STR(__MODULE_DS)"\n"
+		"\tpushl %%eax\n"
+		"\tpushl %1\n"
+		"\tpushl $"STR(__MODULE_CS)"\n"
+		"\tpushl %0\n"
+		"\tiret\n"
+		"\t1:\n"
+		"\txor %%eax,%%eax\n"
+		"\tint $0x80\n"
+		"\tpopl %%eax\n"
+		"\tpopl %%eax\n"
+		"\tpopl %%esp\n"
+		"\tsti\n"
+		::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+
+#undef STR
+#undef __STR
+
+	for(i=0;i<24;i++)
+		*(i_thread_info + i ) = i_stack[i];
+
+	return 0;
+}
+EXPORT_SYMBOL (start_security_thread_m);
+
 int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {
 	int ret = 0;
