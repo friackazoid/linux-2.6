@@ -668,7 +668,7 @@ asmlinkage void __init start_kernel(void)
 	 *  Eto i est te LSM chto nam nuzani
 	 *  ih nado na pervoe kolco
 	 */
-	security_init();
+	start_security_thread(security_init);
 	vfs_caches_init(totalram_pages);
 	radix_tree_init();
 	signals_init();

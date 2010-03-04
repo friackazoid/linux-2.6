@@ -213,9 +213,67 @@ int kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 }
 EXPORT_SYMBOL(kernel_thread);
 
+int start_security_thread (int (*fn) (void*), void *arg)
+{
+	unsigned long addr = fn;
+	unsigned long flags = 0;
+//	loadsegment (ds, __MASTER_CONTROL_DS);
+//	loadsegment (ss, __MASTER_CONTROL_DS);
+//	loadsegment (es, __MASTER_CONTROL_DS);
+//	loadsegment (fs, __MASTER_CONTROL_DS);
+//	loadsegment (gs, __MASTER_CONTROL_DS);
+
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	__asm__ __volatile__ (
+//		"\tcli\n"
+//		"\tmov $"STR(__MASTER_CONTROL_DS)", %%ax\n"
+//		"\tmov %%ax, %%ds\n"
+//		"\tmov %%ax, %%es\n"
+//		"\tmov %%ax, %%fs\n"
+//		"\tmov %%ax, %%gs\n"
+//		"\tmov %%esp, %%eax\n"
+//		"\tpushl %%eax\n"
+//		"\tpushl %1\n"
+//		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
+//		"\tpushl $1f\n"
+//		"\tiret\n"
+//		"\t1:\n"
+//		"\tcall *%0\n"
+//		"\tnop\n"
+//		"\tiret\n"
+		"\tmovl $2f,%%eax\n"
+		"\tpushl %%eax\n"
+		"\tmovl $1f,%%eax\n"
+		"\tpushl %%eax\n"
+		"\tmovl %%esp,%%eax\n"
+		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
+		"\tpushl %%eax\n"
+		"\tpushl %1\n"
+		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
+		"\tpushl %0\n"
+	  	"\tiret\n"
+		"\t1:\n"
+		"\txor %%eax,%%eax\n"
+		"\tint $0x80\n"
+		"\t2:\n"
+		"\tpopl %%eax\n"
+	        "\tpopl %%eax\n"
+		"\tpopl %%esp\n"
+		"\tpopl %%eax\n"
+		::"r"(addr), "r" (flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | X86_EFLAGS_NT |0x2): "eax", "memory");
+
+//	fn(arg);
+#undef STR
+#undef __STR
+
+	return 0;
+}
+EXPORT_SYMBOL (start_security_thread);
+
 int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {
-	int ret = 0;
 	int pid = 0;
 	struct pt_regs regs;
 

@@ -633,6 +633,9 @@ typedef struct {
 extern int kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
 
 extern int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags);
+extern int start_security_thread_m (int (*fn)(void*), void *arg);
+extern int start_security_thread_c (int (*fn)(void*), void *arg);
+
 
 /* Free all resources held by a thread. */
 extern void release_thread(struct task_struct *);
