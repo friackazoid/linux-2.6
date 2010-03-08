@@ -85,6 +85,7 @@ struct lguest_data lguest_data = {
 	.kernel_address = PAGE_OFFSET,
 	.blocked_interrupts = { 1 }, /* Block timer interrupts */
 	.syscall_vec = SYSCALL_VECTOR,
+	.modcall_vec = MODCALL_VECTOR,
 };
 
 /*G:037
@@ -820,7 +821,7 @@ static void __init lguest_init_IRQ(void)
 	for (i = FIRST_EXTERNAL_VECTOR; i < NR_VECTORS; i++) {
 		/* Some systems map "vectors" to interrupts weirdly.  Not us! */
 		__get_cpu_var(vector_irq)[i] = i - FIRST_EXTERNAL_VECTOR;
-		if (i != SYSCALL_VECTOR)
+		if ((i != SYSCALL_VECTOR) && (i != MODCALL_VECTOR))
 			set_intr_gate(i, interrupt[i - FIRST_EXTERNAL_VECTOR]);
 	}
 
