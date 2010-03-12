@@ -57,6 +57,7 @@ struct robust_list_head;
 struct getcpu_cache;
 struct old_linux_dirent;
 struct perf_event_attr;
+struct mutex;
 
 #include <linux/types.h>
 #include <linux/aio_abi.h>
@@ -838,4 +839,6 @@ asmlinkage long sys_perf_event_open(
 asmlinkage long sys_mmap_pgoff(unsigned long addr, unsigned long len,
 			unsigned long prot, unsigned long flags,
 			unsigned long fd, unsigned long pgoff);
+
+asmlinkage long sys_smutex_lock (struct mutex __user * lock);
 #endif

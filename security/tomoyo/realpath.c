@@ -14,6 +14,7 @@
 #include <linux/mnt_namespace.h>
 #include <linux/fs_struct.h>
 #include <linux/hash.h>
+#include <linux/asm/safeint.h>
 
 #include "common.h"
 #include "realpath.h"
@@ -340,7 +341,7 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 	hash = full_name_hash((const unsigned char *) name, len - 1);
 	head = &tomoyo_name_list[hash_long(hash, TOMOYO_HASH_BITS)];
 
-	mutex_lock(&lock);
+	smutex_lock(&lock);
 	list_for_each_entry(ptr, head, list) {
 		if (hash == ptr->entry.hash && !strcmp(name, ptr->entry.name))
 			goto out;

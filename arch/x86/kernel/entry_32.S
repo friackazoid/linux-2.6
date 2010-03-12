@@ -528,12 +528,28 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
+#	cmpw $0x00f1, PT_CS(%esp)
+#	jnz pedal
+
+#	RING0_INT_FRAME
+#	pushl %eax
+#	CFI_ADJUST_CFA_OFFSET 4
+#	SAVE_ALL
+#	GET_THREAD_INFO (%ebp)
+
+#	call *sys_call_table(,%eax,4)
+#	movl %eax, PT_EAX(%esp)
+#	iret
+#	jmp syscall_exit
+
+#pedal:
 	nop
 	test %eax, %eax
 	nop
 	jnz orig_int
 	nop
 	ret
+orig_int:
 	RING0_INT_FRAME			# can't unwind into user space anyway
 	pushl %eax			# save orig_eax
 	CFI_ADJUST_CFA_OFFSET 4
@@ -640,21 +656,21 @@ ldt_ss:
 ENDPROC(system_call)
 
 
-ENTRY(module_call)
-	RING0_INT_FRAME			# can't unwind into user space anyway
-	pushl %eax			# save orig_eax
-	CFI_ADJUST_CFA_OFFSET 4
-	SAVE_ALL
-	GET_THREAD_INFO(%ebp)
+#ENTRY(module_call)
+#	RING0_INT_FRAME			# can't unwind into user space anyway
+#	pushl %eax			# save orig_eax
+#	CFI_ADJUST_CFA_OFFSET 4
+#	SAVE_ALL
+#	GET_THREAD_INFO(%ebp)
 					# system call tracing in operation / emulation
 #	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags(%ebp)
 #	jnz syscall_trace_entry 	# FIXME
-	cmpl $(sr_modcalls), %eax
-	jae modcall_badsys
-modcall_call:
-	call *mod_call_table(,%eax,4)
-	movl %eax,PT_EAX(%esp)		# store the return value
-modcall_exit:
+#	cmpl $(sr_modcalls), %eax
+#	jae modcall_badsys
+#modcall_call:
+#	call *mod_call_table(,%eax,4)
+#	movl %eax,PT_EAX(%esp)		# store the return value
+#modcall_exit:
 #	LOCKDEP_SYS_EXIT
 #	DISABLE_INTERRUPTS(CLBR_ANY)	# make sure we don't miss an interrupt
 					# setting need_resched or sigpending
@@ -664,24 +680,24 @@ modcall_exit:
 #	testl $_TIF_ALLWORK_MASK, %ecx	# current->work
 #	jne syscall_exit_work
 
-modcall_restore_all:
-	TRACE_IRQS_IRET
-modcall_restore_all_notrace:
-	movl PT_EFLAGS(%esp), %eax	# mix EFLAGS, SS and CS
+#modcall_restore_all:
+#	TRACE_IRQS_IRET
+#modcall_restore_all_notrace:
+#	movl PT_EFLAGS(%esp), %eax	# mix EFLAGS, SS and CS
 	# Warning: PT_OLDSS(%esp) contains the wrong/random values if we
 	# are returning to the kernel.
 	# See comments in process.c:copy_thread() for details.
-	movb PT_OLDSS(%esp), %ah
-	movb PT_CS(%esp), %al
+#	movb PT_OLDSS(%esp), %ah
+#	movb PT_CS(%esp), %al
 #	andl $(X86_EFLAGS_VM | (SEGMENT_TI_MASK << 8) | SEGMENT_RPL_MASK), %eax
 #	cmpl $((SEGMENT_LDT << 8) | MODULE_RPL), %eax	# MODULE_RPL
-	CFI_REMEMBER_STATE
+#	CFI_REMEMBER_STATE
 #	je ldt_ss			# returning to user-space with LDT SS
 #restore_nocheck:
-	RESTORE_REGS 4			# skip orig_eax/error_code
-	CFI_ADJUST_CFA_OFFSET -4
+#	RESTORE_REGS 4			# skip orig_eax/error_code
+#	CFI_ADJUST_CFA_OFFSET -4
 #irq_return:
-	INTERRUPT_RETURN
+#	INTERRUPT_RETURN
 #.section .fixup,"ax"
 #ENTRY(iret_exc)
 #	pushl $0			# no error code
@@ -743,8 +759,8 @@ modcall_restore_all_notrace:
 #	lss (%esp), %esp		/* switch to espfix segment */
 #	CFI_ADJUST_CFA_OFFSET -8
 #	jmp restore_nocheck
-	CFI_ENDPROC
-ENDPROC(module_call)
+#	CFI_ENDPROC
+#ENDPROC(module_call)
 
 
 	# perform work that needs to be done immediately before resumption

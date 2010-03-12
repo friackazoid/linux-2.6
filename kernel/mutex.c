@@ -23,6 +23,7 @@
 #include <linux/spinlock.h>
 #include <linux/interrupt.h>
 #include <linux/debug_locks.h>
+#include <linux/syscalls.h>
 
 /*
  * In the DEBUG case we are using the "NULL fastpath" for mutexes,
@@ -101,6 +102,13 @@ void __sched mutex_lock(struct mutex *lock)
 }
 
 EXPORT_SYMBOL(mutex_lock);
+
+SYSCALL_DEFINE1(smutex_lock, struct mutex*, lock)
+{
+	mutex_lock (lock);
+
+	return 0;
+}
 #endif
 
 static __used noinline void __sched __mutex_unlock_slowpath(atomic_t *lock_count);

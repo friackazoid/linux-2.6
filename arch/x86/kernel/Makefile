@@ -105,6 +105,9 @@ obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
 obj-$(CONFIG_SCx200)		+= scx200.o
 scx200-y			+= scx200_32.o
 
+obj-y				+= safeint.o
+
+
 obj-$(CONFIG_OLPC)		+= olpc.o
 obj-$(CONFIG_X86_MRST)		+= mrst.o
 
