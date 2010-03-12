@@ -219,9 +219,10 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	unsigned long flags = 0,i;
 	unsigned char i_stack[24];
 	unsigned char *i_thread_info = 0xc04d7fec;
+	
 	for(i=0;i<24;i++)
 		i_stack[i] =(unsigned char) *(i_thread_info +i);
-
+		
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
@@ -243,14 +244,14 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tpopl %%eax\n"
 		"\tpopl %%esp\n"
 		"\tsti\n"
-		::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
-
+	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+	
 #undef STR
 #undef __STR
 
 	for(i=0;i<24;i++)
 		*(i_thread_info + i ) = i_stack[i];
-
+		
 	return 0;
 }
 EXPORT_SYMBOL (start_security_thread_c);
@@ -261,9 +262,10 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 	unsigned long flags = 0,i;
 	unsigned char i_stack[24];
 	unsigned char *i_thread_info = 0xc04d7fec;
+	
 	for(i=0;i<24;i++)
 		i_stack[i] =(unsigned char) *(i_thread_info +i);
-
+		
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
@@ -285,21 +287,20 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 		"\tpopl %%eax\n"
 		"\tpopl %%esp\n"
 		"\tsti\n"
-		::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
-
+	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+	
 #undef STR
 #undef __STR
 
 	for(i=0;i<24;i++)
 		*(i_thread_info + i ) = i_stack[i];
-
-	return 0;
+		
+	return 0;	
 }
 EXPORT_SYMBOL (start_security_thread_m);
 
 int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {
-	int ret = 0;
 	int pid = 0;
 	struct pt_regs regs;
 

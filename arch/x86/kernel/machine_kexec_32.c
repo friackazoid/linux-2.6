@@ -56,7 +56,7 @@ static void load_segments(void)
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-		"\tljmp $"STR(__KERNEL_CS)",$1f\n"
+		"\tljmp $"STR(__KERNEL_CS)", $1\n"
 		"\t1:\n"
 		"\tmovl $"STR(__KERNEL_DS)",%%eax\n"
 		"\tmovl %%eax,%%ds\n"

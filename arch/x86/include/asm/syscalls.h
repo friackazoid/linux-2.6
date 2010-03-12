@@ -91,5 +91,9 @@ asmlinkage long sys_mmap(unsigned long, unsigned long, unsigned long,
 			 unsigned long, unsigned long, unsigned long);
 asmlinkage long sys_uname(struct new_utsname __user *);
 
+
+/* kernel/mutex.c */
+//asmlinkage long mod_mutex_lock (struct mutext*);
+
 #endif /* CONFIG_X86_32 */
 #endif /* _ASM_X86_SYSCALLS_H */
