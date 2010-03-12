@@ -8,6 +8,7 @@
 void early_idt_handler(void);
 
 void system_call(void);
+void module_call(void);
 void syscall_init(void);
 
 void ia32_syscall(void);

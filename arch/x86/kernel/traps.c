@@ -940,7 +940,7 @@ void __init trap_init(void)
 	}
 
 	set_system_trap_gate(SYSCALL_VECTOR, &system_call);
-	set_system_trap_gate_mod(MODCALL_VECTOR, &module_call)
+	set_system_trap_gate_mod(MODCALL_VECTOR, &module_call);
 	set_bit(SYSCALL_VECTOR, used_vectors);
 #endif
 
