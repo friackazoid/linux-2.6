@@ -528,8 +528,12 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
-#	cmpw $0x00f1, PT_CS(%esp)
-#	jnz pedal
+	push %ecx
+	movl 8(%esp),%ecx
+	cmpl $0xe9,%ecx
+	pop %ecx
+	jnz pedal
+	subl $0x800,%esp
 
 #	RING0_INT_FRAME
 #	pushl %eax
@@ -542,7 +546,7 @@ ENTRY(system_call)
 #	iret
 #	jmp syscall_exit
 
-#pedal:
+pedal:
 	nop
 	test %eax, %eax
 	nop
@@ -588,6 +592,15 @@ restore_all_notrace:
 	je ldt_ss			# returning to user-space with LDT SS
 restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
+	cmpl $0x0, (%esp)
+	jnz restore_ret  
+	push %ecx
+	movl 0x808(%esp),%ecx
+	cmpl $0xe9, %ecx
+	pop %ecx
+	jnz restore_ret
+	addl $0x800,%esp
+restore_ret:
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
 	INTERRUPT_RETURN
@@ -679,7 +692,7 @@ ENDPROC(system_call)
 #	movl TI_flags(%ebp), %ecx
 #	testl $_TIF_ALLWORK_MASK, %ecx	# current->work
 #	jne syscall_exit_work
- 
+
 #modcall_restore_all:
 #	TRACE_IRQS_IRET
 #modcall_restore_all_notrace:
@@ -708,14 +721,14 @@ ENDPROC(system_call)
 #	.align 4
 #	.long irq_return,iret_exc
 #.previous
- 
+
 #	CFI_RESTORE_STATE
 #ldt_ss:
 #	larl PT_OLDSS(%esp), %eax
 #	jnz restore_nocheck
 #	testl $0x00400000, %eax		# returning to 32bit stack?
 #	jnz restore_nocheck		# allright, normal return
- 
+
 #ifdef CONFIG_PARAVIRT
 	/*
 	 * The kernel can't run on a non-flat stack if paravirt mode
@@ -728,7 +741,7 @@ ENDPROC(system_call)
 #	cmpl $0, pv_info+PARAVIRT_enabled
 #	jne restore_nocheck
 #endif
- 
+
 /*
  * Setup and switch to ESPFIX stack
  *
