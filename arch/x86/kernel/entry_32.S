@@ -528,8 +528,12 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
-#	cmpw $0x00f1, PT_CS(%esp)
-#	jnz pedal
+	push %ecx
+	movl 8(%esp),%ecx
+	cmpl $0xe9,%ecx
+	pop %ecx
+	jnz pedal
+	subl $0x800,%esp
 
 #	RING0_INT_FRAME
 #	pushl %eax
@@ -542,8 +546,7 @@ ENTRY(system_call)
 #	iret
 #	jmp syscall_exit
 
-#pedal:
-	subl $0x800, %esp
+pedal:
 	nop
 	test %eax, %eax
 	nop
@@ -590,6 +593,15 @@ restore_all_notrace:
 	je ldt_ss			# returning to user-space with LDT SS
 restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
+	cmpl $0x0, (%esp)
+	jnz restore_ret  
+	push %ecx
+	movl 0x808(%esp),%ecx
+	cmpl $0xe9, %ecx
+	pop %ecx
+	jnz restore_ret
+	addl $0x800,%esp
+restore_ret:
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
 
