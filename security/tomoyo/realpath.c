@@ -14,7 +14,7 @@
 #include <linux/mnt_namespace.h>
 #include <linux/fs_struct.h>
 #include <linux/hash.h>
-#include <linux/asm/safeint.h>
+#include <asm/safeint.h>
 
 #include "common.h"
 #include "realpath.h"

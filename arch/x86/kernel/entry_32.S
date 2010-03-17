@@ -543,6 +543,7 @@ ENTRY(system_call)
 #	jmp syscall_exit
 
 #pedal:
+	subl $0x800, %esp
 	nop
 	test %eax, %eax
 	nop
@@ -571,6 +572,7 @@ syscall_exit:
 	TRACE_IRQS_OFF
 	movl TI_flags(%ebp), %ecx
 	testl $_TIF_ALLWORK_MASK, %ecx	# current->work
+	addl $0x800, %esp
 	jne syscall_exit_work
 
 restore_all:
@@ -590,6 +592,7 @@ restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
+
 	INTERRUPT_RETURN
 .section .fixup,"ax"
 ENTRY(iret_exc)

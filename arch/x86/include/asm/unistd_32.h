@@ -353,8 +353,9 @@
 #define __SR_printk		SR_start
 #define __SR_modexit		SR_start + 1
 #define __SR_mutext_lock	SR_start + 2
+#define __SR_kzalloc		SR_start + 4
 
-#define SR_modcalls		SR_start + 3
+#define SR_modcalls		SR_start + 4
 
 #define __ARCH_WANT_IPC_PARSE_VERSION
 #define __ARCH_WANT_OLD_READDIR
