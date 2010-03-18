@@ -66,7 +66,6 @@
 #include <asm/setup.h>
 
 asmlinkage int system_call(void);
-asmlinkage int module_call(void);
 
 /* Do we ignore FPU interrupts ? */
 char ignore_fpu_irq;
@@ -941,9 +940,7 @@ void __init trap_init(void)
 	}
 
 	set_system_trap_gate(SYSCALL_VECTOR, &system_call);
-//	set_system_trap_gate_mod(MODCALL_VECTOR, &module_call);
 	set_bit(SYSCALL_VECTOR, used_vectors);
-//	set_bit(MODCALL_VECTOR, used_vectors);
 #endif
 
 	/*
