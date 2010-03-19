@@ -36,6 +36,7 @@
 #include <linux/ratelimit.h>
 
 #include <asm/uaccess.h>
+#include <linux/syscalls.h>
 
 /*
  * for_each_console() allows you to iterate on each console
@@ -597,6 +598,11 @@ asmlinkage int printk(const char *fmt, ...)
 	va_end(args);
 
 	return r;
+}
+
+SYSCALL_DEFINE0(mod_printk)
+{
+	return 0;
 }
 
 /* cpu currently holding logbuf_lock */

@@ -1,5 +1,6 @@
 //#include <linux/asm/safeint.h>
 #include <linux/types.h>
+#include <asm/unistd.h>
 
 void smutex_lock (struct mutext *lock) 
 {
@@ -17,20 +18,22 @@ void smutex_lock (struct mutext *lock)
 	for(i=0; (unsigned int)(i_thread_info + i) << 20 ;i++ )
 		i_stack[i] = (unsigned char) *(i_thread_info + i);
 
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
 	__asm__ __volatile__ (
 		"\tmovl %0, %%ebx\n"
-		"\tmovl $338, %%eax\n"
+		"\tmovl $"STR(__SR_mod_mutex_lock)", %%eax\n"
 		"\tint $0x80\n"
-<<<<<<< HEAD
-	::"r"(lock) : "eax");
-=======
 	::"r"(lock) : "eax", "memory");
+
+#undef STR
+#undef __STR
 
 	for(; i > 0 ;i-- )
 		*(i_thread_info + i) = i_stack[i];
 
 
->>>>>>> c9ac7db5edd6bb6df415f8c9a402f1b7d7cde5d7
 }
 
 void* skzalloc (size_t size, gfp_t flags) 

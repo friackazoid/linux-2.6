@@ -344,18 +344,16 @@
 #define __NR_perf_event_open	336
 #define __NR_recvmmsg		337
 
+/* Numbers of modules call */
+#define __SR_mod_exit		0
+#define __SR_mod_printk		1
+#define __SR_mod_mutex_lock	2
+#define __SR_mod_kzalloc	3
+
 #ifdef __KERNEL__
 
 #define NR_syscalls 		338
-#define SR_start		NR_syscalls
-
-/* Numbers of modules call */
-#define __SR_printk		SR_start
-#define __SR_modexit		SR_start + 1
-#define __SR_mutext_lock	SR_start + 2
-#define __SR_kzalloc		SR_start + 4
-
-#define SR_modcalls		SR_start + 4
+#define SR_modcalls		4
 
 #define __ARCH_WANT_IPC_PARSE_VERSION
 #define __ARCH_WANT_OLD_READDIR

@@ -562,11 +562,21 @@ orig_int:
 					# system call tracing in operation / emulation
 	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags(%ebp)
 	jnz syscall_trace_entry
+	cmpl $0xe9, PT_CS(%esp)
+	jz modcall_call
 	cmpl $(nr_syscalls), %eax
 	jae syscall_badsys
 syscall_call:
 	call *sys_call_table(,%eax,4)
 	movl %eax,PT_EAX(%esp)		# store the return value
+	jmp syscall_exit
+
+modcall_call:
+	cmpl $(sr_modcalls), %eax
+	jae syscall_badsys
+	call *mod_call_table(,%eax,4)
+	movl %eax, PT_EAX(%esp)
+
 syscall_exit:
 	LOCKDEP_SYS_EXIT
 	DISABLE_INTERRUPTS(CLBR_ANY)	# make sure we don't miss an interrupt

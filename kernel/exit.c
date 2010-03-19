@@ -1044,6 +1044,11 @@ SYSCALL_DEFINE1(exit, int, error_code)
 	do_exit((error_code&0xff)<<8);
 }
 
+SYSCALL_DEFINE0(mod_rettoker)
+{
+	return 0;
+}
+
 /*
  * Take down every thread in the group.  This is called by fatal signals
  * as well as by sys_exit_group (below).

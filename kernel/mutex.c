@@ -103,7 +103,7 @@ void __sched mutex_lock(struct mutex *lock)
 
 EXPORT_SYMBOL(mutex_lock);
 
-SYSCALL_DEFINE1(smutex_lock, struct mutex*, lock)
+SYSCALL_DEFINE1(mod_mutex_lock, struct mutex*, lock)
 {
 	mutex_lock (lock);
 
