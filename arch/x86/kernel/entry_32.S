@@ -528,12 +528,16 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
-	push %ecx
-	movl 8(%esp),%ecx
-	cmpl $0xe9,%ecx
-	pop %ecx
+
+	cmpl $0xe9,0x4(%esp)
 	jnz pedal
+
 	subl $0x800,%esp
+	pushl 0x810(%esp)
+	pushl 0x810(%esp)
+	pushl 0x810(%esp)
+	pushl 0x810(%esp)
+	pushl 0x810(%esp)
 
 #	RING0_INT_FRAME
 #	pushl %eax
@@ -585,7 +589,6 @@ syscall_exit:
 	TRACE_IRQS_OFF
 	movl TI_flags(%ebp), %ecx
 	testl $_TIF_ALLWORK_MASK, %ecx	# current->work
-	addl $0x800, %esp
 	jne syscall_exit_work
 
 restore_all:
@@ -603,14 +606,11 @@ restore_all_notrace:
 	je ldt_ss			# returning to user-space with LDT SS
 restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
-	cmpl $0x0, (%esp)
-	jnz restore_ret  
-	push %ecx
-	movl 0x808(%esp),%ecx
-	cmpl $0xe9, %ecx
-	pop %ecx
+
+	cmpl $0xe9, 0x04(%esp)
 	jnz restore_ret
-	addl $0x800,%esp
+	addl $0x814,%esp
+
 restore_ret:
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
