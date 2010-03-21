@@ -353,10 +353,10 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 	if (!tomoyo_quota_for_savename ||
 	    tomoyo_allocated_memory_for_savename + PATH_MAX
 	    <= tomoyo_quota_for_savename)
-		cp = kzalloc(PATH_MAX, GFP_KERNEL);
+		cp = skzalloc(PATH_MAX, GFP_KERNEL);
 	else
 		cp = NULL;
-	fmb = kzalloc(sizeof(*fmb), GFP_KERNEL);
+	fmb = skzalloc(sizeof(*fmb), GFP_KERNEL);
 	if (!cp || !fmb) {
 		kfree(cp);
 		kfree(fmb);

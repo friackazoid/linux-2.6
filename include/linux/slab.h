@@ -315,13 +315,7 @@ static inline void *kzalloc(size_t size, gfp_t flags)
 	return kmalloc(size, flags | __GFP_ZERO);
 }
 
-//#include <linux/syscalls.h>
-//SYSCALL_DEFINE2(skzalloc, size_t, size, gfp_t, flags)
-//{
-//	unsigned long addr;
-//	addr = kzalloc (size, flags);
-//	return addr;
-//}
+
 
 /**
  * kzalloc_node - allocate zeroed memory from a particular memory node.

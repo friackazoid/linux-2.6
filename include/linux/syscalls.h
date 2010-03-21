@@ -844,4 +844,5 @@ asmlinkage long sys_mmap_pgoff(unsigned long addr, unsigned long len,
 asmlinkage long sys_mod_rettoker ();
 asmlinkage long sys_mod_printk ();
 asmlinkage long sys_mod_mutex_lock (struct mutex __user * lock);
+asmlinkage long sys_mod_kzalloc (size_t size, gfp_t flags);
 #endif
