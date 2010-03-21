@@ -539,17 +539,6 @@ ENTRY(system_call)
 	pushl 0x810(%esp)
 	pushl 0x810(%esp)
 
-#	RING0_INT_FRAME
-#	pushl %eax
-#	CFI_ADJUST_CFA_OFFSET 4
-#	SAVE_ALL
-#	GET_THREAD_INFO (%ebp)
-
-#	call *sys_call_table(,%eax,4)
-#	movl %eax, PT_EAX(%esp)
-#	iret
-#	jmp syscall_exit
-
 pedal:
 	nop
 	test %eax, %eax
@@ -606,15 +595,14 @@ restore_all_notrace:
 	je ldt_ss			# returning to user-space with LDT SS
 restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
-
-	cmpl $0xe9, 0x04(%esp)
-	jnz restore_ret
-	addl $0x814,%esp
-
-restore_ret:
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
+	
+	cmpl $0xe9, 0x04(%esp)
+	jnz orig_ret
+	addl $0x814, %esp	
 
+orig_ret:
 	INTERRUPT_RETURN
 .section .fixup,"ax"
 ENTRY(iret_exc)

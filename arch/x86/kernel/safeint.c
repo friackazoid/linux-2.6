@@ -5,15 +5,15 @@
 void smutex_lock (struct mutext *lock) 
 {
 	unsigned char i_stack[1024];
-	unsigned char *i_thread_info = 0xc04dbfe0;
+	unsigned char *i_thread_info;
 
 	unsigned int i;
 
-//	__asm__ __volatile__ (
-//		"\tmovl %%esp,%0\n"
-//	:"=r"(i_thread_info)::"eax");
+	__asm__ __volatile__ (
+		"\tmovl %%esp,%0\n"
+	:"=r"(i_thread_info)::"eax");
 
-//	i_thread_info = ((unsigned int)i_thread_info & 0xfffff000)+ 0xfaa;
+	i_thread_info = ((unsigned int)i_thread_info & 0xfffff000)+ 0xfe8;
 
 	for(i=0; (unsigned int)(i_thread_info + i) << 20 ;i++ )
 		i_stack[i] = (unsigned char) *(i_thread_info + i);
@@ -25,7 +25,7 @@ void smutex_lock (struct mutext *lock)
 		"\tmovl %0, %%ebx\n"
 		"\tmovl $"STR(__SR_mod_mutex_lock)", %%eax\n"
 		"\tint $0x80\n"
-	::"r"(lock) : "eax", "memory");
+	::"r"(lock) : "eax", "ebx","memory");
 
 #undef STR
 #undef __STR
@@ -55,7 +55,7 @@ void* skzalloc (size_t size, gfp_t flags)
 		"\tmovl %1, %%ecx\n"
 		"\tmovl $"STR(__SR_mod_kzalloc)", %%eax\n"
 		"\tint $0x80\n"
-	::"r"(size), "r"(flags) : "eax");
+	::"r"(size), "r"(flags) :"ebx","ecx", "eax");
 #undef STR
 #undef __STR
 
