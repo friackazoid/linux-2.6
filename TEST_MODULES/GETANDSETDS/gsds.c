@@ -6,11 +6,11 @@
 
 static int __init hello_init(void)
 {
-	unsigned long cs_s;
+	int cs_s;
 	cs_s = 0;
 
 	printk("[Start test ds]\n");
-/*		__asm__ __volatile__( "movl %%cs, %0 \n\t"
+		__asm__ __volatile__( "movl %%cs, %0 \n\t"
 					: "=r"(cs_s)
 					);
 	printk("[*] CSis = %X, ( %X ) \n", cs_s, __KERNEL_CS);
@@ -26,12 +26,6 @@ static int __init hello_init(void)
 					: "=r"(cs_s)
 					);
 	printk("[*] CSis = %X, ( %X ) \n", cs_s, __USER_CS);
-*/
-	__asm__ __volatile__( "mov %%cr3, %0 \n\t"
-					: "=r"(cs_s)
-					);
-	printk("[*] CSis = %X, ( %X ) \n", cs_s, __KERNEL_CS);
-
 
 /*
 		__asm__ volatile( "mov %0, %%ax \n\t"

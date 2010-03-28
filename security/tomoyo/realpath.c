@@ -232,12 +232,12 @@ void *tomoyo_alloc_element(const unsigned int size)
 		= roundup(size, max(sizeof(void *), sizeof(long)));
 	if (word_aligned_size > PATH_MAX)
 		return NULL;
-	mutex_lock(&lock);
+	smutex_lock(&lock);
 	if (buf_used_len + word_aligned_size > PATH_MAX) {
 		if (!tomoyo_quota_for_elements ||
 		    tomoyo_allocated_memory_for_elements
 		    + PATH_MAX <= tomoyo_quota_for_elements)
-			ptr = kzalloc(PATH_MAX, GFP_KERNEL);
+			ptr = skzalloc(PATH_MAX, GFP_KERNEL);
 		if (!ptr) {
 			printk(KERN_WARNING "ERROR: Out of memory "
 			       "for tomoyo_alloc_element().\n");
@@ -261,7 +261,7 @@ void *tomoyo_alloc_element(const unsigned int size)
 			ptr[i] = '\0';
 		}
 	}
-	mutex_unlock(&lock);
+	smutex_unlock(&lock);
 	return ptr;
 }
 
@@ -376,7 +376,7 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 	if (!ptr)
 		goto out;
 	ptr->entry.name = fmb->ptr;
-	memmove(fmb->ptr, name, len);
+	memcpy(fmb->ptr, name, len);
 	tomoyo_fill_path_info(&ptr->entry);
 	fmb->ptr += len;
 	fmb->len -= len;
@@ -386,7 +386,7 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 		kfree(fmb);
 	}
  out:
-	mutex_unlock(&lock);
+	smutex_unlock(&lock);
 	return ptr ? &ptr->entry : NULL;
 }
 

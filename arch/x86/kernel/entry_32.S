@@ -233,6 +233,44 @@
 	SET_KERNEL_GS %edx
 .endm
 
+.macro SAVEMC_ALL
+	cld
+	PUSH_GS
+	pushl %fs
+	pushl %es
+	pushl %ds
+	pushl %eax
+	pushl %ebp
+	pushl %edi
+	pushl %esi
+	pushl %edx
+	pushl %ecx
+	pushl %ebx
+	movl $(__USER_DS), %edx
+	movl %edx, %ds
+	movl %edx, %es
+	movl $(__KERNEL_PERCPU), %edx
+	movl %edx, %fs
+	SET_KERNEL_GS %edx
+.endm
+
+
+.macro RESTMC_ALL
+	popl %ebx
+	popl %ecx
+	popl %edx
+	popl %esi
+	popl %edi
+	popl %ebp
+#	popl %eax
+	addl $0x4,%esp
+	popl %ds
+	popl %es
+	popl %fs
+	addl $0x8,%esp
+	std
+.endm
+
 .macro RESTORE_INT_REGS
 	popl %ebx
 	CFI_ADJUST_CFA_OFFSET -4
@@ -528,7 +566,10 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
-
+	nop
+	nop
+	nop
+	nop
 	cmpl $0xe9,0x4(%esp)
 	jnz pedal
 
@@ -538,6 +579,7 @@ ENTRY(system_call)
 	pushl 0x810(%esp)
 	pushl 0x810(%esp)
 	pushl 0x810(%esp)
+	jmp modcall_call
 
 pedal:
 	nop
@@ -548,6 +590,7 @@ pedal:
 	ret
 orig_int:
 	RING0_INT_FRAME			# can't unwind into user space anyway
+test_orig_int:
 	pushl %eax			# save orig_eax
 	CFI_ADJUST_CFA_OFFSET 4
 	SAVE_ALL
@@ -565,10 +608,17 @@ syscall_call:
 	jmp syscall_exit
 
 modcall_call:
+	pushl %eax			# save orig_eax
+	SAVEMC_ALL
+#	GET_THREAD_INFO(%ebp)
+
 	cmpl $(sr_modcalls), %eax
 	jae syscall_badsys
 	call *mod_call_table(,%eax,4)
-	movl %eax, PT_EAX(%esp)
+#	movl %eax, PT_EAX(%esp)
+	RESTMC_ALL
+	addl $0x814, %esp
+	iret	
 
 syscall_exit:
 	LOCKDEP_SYS_EXIT
@@ -600,7 +650,8 @@ irq_return:
 	
 	cmpl $0xe9, 0x04(%esp)
 	jnz orig_ret
-	addl $0x814, %esp	
+	addl $0x814, %esp
+	iret	
 
 orig_ret:
 	INTERRUPT_RETURN

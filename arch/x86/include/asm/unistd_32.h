@@ -349,6 +349,7 @@
 #define __SR_mod_printk		1
 #define __SR_mod_mutex_lock	2
 #define __SR_mod_kzalloc	3
+#define __SR_mod_mutex_unlock	4
 
 #ifdef __KERNEL__
 

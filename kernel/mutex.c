@@ -143,6 +143,12 @@ void __sched mutex_unlock(struct mutex *lock)
 
 EXPORT_SYMBOL(mutex_unlock);
 
+SYSCALL_DEFINE1 (mod_mutex_unlock, struct mutex*, lock)
+{
+	mutex_unlock (lock);
+	return 0;
+}
+
 /*
  * Lock a mutex (possibly interruptible), slowpath:
  */
