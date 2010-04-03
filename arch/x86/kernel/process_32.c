@@ -218,8 +218,14 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	unsigned long addr = fn;
 	unsigned long flags = 0,i;
 	unsigned char i_stack[24];
-	unsigned char *i_thread_info = 0xc04d7fec;
-	
+	unsigned char *i_thread_info;
+
+	__asm__ __volatile__ (
+		"\tmovl %%esp,%0\n"
+	:"=r"(i_thread_info)::"eax");
+
+	i_thread_info = ((unsigned int)i_thread_info & 0xfffff000)+ 0xfec;
+
 	for(i=0;i<24;i++)
 		i_stack[i] =(unsigned char) *(i_thread_info +i);
 		
@@ -261,8 +267,14 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 	unsigned long addr = fn;
 	unsigned long flags = 0,i;
 	unsigned char i_stack[24];
-	unsigned char *i_thread_info = 0xc04d7fec;
-	
+	unsigned char *i_thread_info;
+
+	__asm__ __volatile__ (
+		"\tmovl %%esp,%0\n"
+	:"=r"(i_thread_info)::"eax");
+
+	i_thread_info = ((unsigned int)i_thread_info & 0xfffff000)+ 0xfec;
+
 	for(i=0;i<24;i++)
 		i_stack[i] =(unsigned char) *(i_thread_info +i);
 		

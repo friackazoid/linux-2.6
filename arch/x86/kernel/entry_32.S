@@ -571,7 +571,10 @@ ENTRY(system_call)
 	nop
 	nop
 	cmpl $0xe9,0x4(%esp)
-	jnz pedal
+	jnz orig_int
+pedal:
+	cmpl $0, %eax
+	je fast_exit
 
 	subl $0x800,%esp
 	pushl 0x810(%esp)
@@ -581,13 +584,6 @@ ENTRY(system_call)
 	pushl 0x810(%esp)
 	jmp modcall_call
 
-pedal:
-	nop
-	test %eax, %eax
-	nop
-	jnz orig_int
-	nop
-	ret
 orig_int:
 	RING0_INT_FRAME			# can't unwind into user space anyway
 test_orig_int:
@@ -614,10 +610,12 @@ modcall_call:
 
 	cmpl $(sr_modcalls), %eax
 	jae syscall_badsys
+fast_exit:	
 	call *mod_call_table(,%eax,4)
 #	movl %eax, PT_EAX(%esp)
 	RESTMC_ALL
 	addl $0x814, %esp
+#	pushl $(start_security_thread_c)
 	iret	
 
 syscall_exit:
