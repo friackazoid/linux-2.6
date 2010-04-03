@@ -574,7 +574,10 @@ ENTRY(system_call)
 	jnz orig_int
 pedal:
 	cmpl $0, %eax
+<<<<<<< HEAD
 	nop
+=======
+>>>>>>> 76c98b03dcd11bfd0c5597abfc9dceec79a22a63
 	je fast_exit
 
 	subl $0x800,%esp
@@ -611,7 +614,7 @@ modcall_call:
 
 	cmpl $(sr_modcalls), %eax
 	jae syscall_badsys
-fast_exit:
+fast_exit:	
 	call *mod_call_table(,%eax,4)
 #	movl %eax, PT_EAX(%esp)
 	RESTMC_ALL
