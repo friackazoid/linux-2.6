@@ -58,6 +58,10 @@
 #include <asm/ds.h>
 #include <asm/debugreg.h>
 
+
+#include <asm/thread_info.h>
+
+
 asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
 
 /*
@@ -217,28 +221,29 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 {
 	unsigned long addr = fn;
 	unsigned long flags = 0,i;
-	unsigned char i_stack[24];
+
+//	unsigned char i_stack[0xaf];
 	unsigned char *i_thread_info;
 
 	__asm__ __volatile__ (
 		"\tmovl %%esp,%0\n"
-	:"=r"(i_thread_info)::"eax");
+	:"=r"(i_thread_info));
 
-	i_thread_info = ((unsigned int)i_thread_info & 0xfffff000)+ 0xfec;
+	i_thread_info = (unsigned int)i_thread_info & 0xfffff000;
 
-	for(i=0;i<24;i++)
-		i_stack[i] =(unsigned char) *(i_thread_info +i);
+	for( i=0 ; i < sizeof(struct thread_info) ; i++ )
+		*(i_thread_info + THREAD_SIZE + i) = (unsigned char)*( i_thread_info + i);
 		
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-		"\tcli\n"
+//		"\tcli\n"
 		"\tmovl $1f,%%eax\n"
 		"\tpushl %%eax\n"
 		"\tmovl %%esp,%%eax\n"
 		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
-		"\tpushl %%eax\n"
+		"\tpushl %2\n"
 		"\tpushl %1\n"
 		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
 		"\tpushl %0\n"
@@ -249,15 +254,15 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tpopl %%eax\n"
 		"\tpopl %%eax\n"
 		"\tpopl %%esp\n"
-		"\tsti\n"
-	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+//		"\tsti\n"
+	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ),"r"(i_thread_info + 2*THREAD_SIZE-1): "eax", "memory");
 	
 #undef STR
 #undef __STR
-
-	for(i=0;i<24;i++)
+/*
+	for(;i;i--)
 		*(i_thread_info + i ) = i_stack[i];
-		
+*/		
 	return 0;
 }
 EXPORT_SYMBOL (start_security_thread_c);

@@ -574,10 +574,6 @@ ENTRY(system_call)
 	jnz orig_int
 pedal:
 	cmpl $0, %eax
-<<<<<<< HEAD
-	nop
-=======
->>>>>>> 76c98b03dcd11bfd0c5597abfc9dceec79a22a63
 	je fast_exit
 
 	subl $0x800,%esp
