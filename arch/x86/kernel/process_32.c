@@ -243,7 +243,7 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tpushl %%eax\n"
 		"\tmovl %%esp,%%eax\n"
 		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
-		"\tpushl %2\n"
+		"\tpushl $"STR(TSS_modstack_sp1)"\n"
 		"\tpushl %1\n"
 		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
 		"\tpushl %0\n"

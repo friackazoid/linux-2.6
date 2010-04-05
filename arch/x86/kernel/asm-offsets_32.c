@@ -97,6 +97,9 @@ void foo(void)
 	DEFINE(TSS_sysenter_sp0, offsetof(struct tss_struct, x86_tss.sp0) -
 		 sizeof(struct tss_struct));
 
+	DEFINE(TSS_modstack_sp1, offsetof(struct tss_struct, x86_tss.sp1) -
+		 sizeof(struct tss_struct));
+
 	DEFINE(PAGE_SIZE_asm, PAGE_SIZE);
 	DEFINE(PAGE_SHIFT_asm, PAGE_SHIFT);
 	DEFINE(PTRS_PER_PTE, PTRS_PER_PTE);

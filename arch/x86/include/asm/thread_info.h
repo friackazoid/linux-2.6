@@ -59,6 +59,8 @@ struct thread_info {
 #define init_thread_info	(init_thread_union.thread_info)
 #define init_stack		(init_thread_union.stack)
 
+#define init_mod_stack		(init_mod_thread_union.stack)
+
 #else /* !__ASSEMBLY__ */
 
 #include <asm/asm-offsets.h>
