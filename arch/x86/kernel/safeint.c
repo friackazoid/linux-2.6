@@ -9,7 +9,6 @@ void smutex_lock (struct mutext *lock)
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-		"\tmovl %%esp,%%esi\n"
 		"\tmovl %0, %%ebx\n"
 		"\tmovl $"STR(__SR_mod_mutex_lock)", %%eax\n"
 		"\tint $0x80\n"
@@ -27,7 +26,6 @@ void smutex_unlock (struct mutex *lock)
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-		"\tmovl %%esp,%%esi\n"
 		"\tmovl %0, %%ebx\n"
 		"\tmovl $"STR(__SR_mod_mutex_unlock)", %%eax\n"
 		"\tint $0x80\n"
@@ -46,7 +44,6 @@ void* skzalloc (size_t size, gfp_t flags)
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-		"\tmovl %%esp,%%esi\n"
 		"\tmovl %1, %%ebx\n"
 		"\tmovl %2, %%ecx\n"
 		"\tmovl $"STR(__SR_mod_kzalloc)", %%eax\n"

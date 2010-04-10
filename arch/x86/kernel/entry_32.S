@@ -566,22 +566,12 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
-	nop
-	nop
-	nop
-	nop
 	cmpl $0xe9,0x4(%esp)
 	jnz orig_int
 pedal:
 	cmpl $0, %eax
 	je fast_exit
 
-	subl $0x800,%esp
-	pushl 0x810(%esp)
-	pushl 0x810(%esp)
-	pushl 0x810(%esp)
-	pushl 0x810(%esp)
-	pushl 0x810(%esp)
 	jmp modcall_call
 
 orig_int:
@@ -612,9 +602,7 @@ modcall_call:
 	jae syscall_badsys
 fast_exit:	
 	call *mod_call_table(,%eax,4)
-#	movl %eax, PT_EAX(%esp)
 	RESTMC_ALL
-	addl $0x814, %esp
 #	pushl $(start_security_thread_c)
 	iret	
 
