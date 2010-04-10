@@ -1093,6 +1093,7 @@ static void clear_all_debug_regs(void)
  * 'CPU state barrier', nothing should get across.
  * A lot of state is already set up in PDA init for 64 bit
  */
+
 #ifdef CONFIG_X86_64
 
 void __cpuinit cpu_init(void)
@@ -1172,6 +1173,11 @@ void __cpuinit cpu_init(void)
 	enter_lazy_tlb(&init_mm, me);
 
 	load_sp0(t, &current->thread);
+
+	/*[42] Create load_sp2
+	 */
+	t->x86_tss.sp2 = stack_sec_start;
+
 	set_tss_desc(cpu, t);
 	load_TR_desc();
 	load_LDT(&init_mm.context);
@@ -1198,6 +1204,8 @@ void __cpuinit cpu_init(void)
 }
 
 #else
+
+extern stack_sec_start;
 
 void __cpuinit cpu_init(void)
 {
@@ -1232,6 +1240,10 @@ void __cpuinit cpu_init(void)
 	set_tss_desc(cpu, t);
 	load_TR_desc();
 	load_LDT(&init_mm.context);
+
+	/*[42] Create load_sp2
+	 */
+	t->x86_tss.sp2 = &stack_sec_start;
 
 	t->x86_tss.io_bitmap_base = offsetof(struct tss_struct, io_bitmap);
 

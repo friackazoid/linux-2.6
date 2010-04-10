@@ -657,9 +657,11 @@ ENTRY(swapper_pg_dir)
 ENTRY(stack_start)
 	.long init_thread_union+THREAD_SIZE
 	.long __BOOT_DS
-	.align 4
-# ENTRY(start_security_stack)
-	.long init_mod_thread_union+THREAD_SIZE
+
+	.align PAGE_SIZE
+ENTRY(stack_sec_start)
+	.long init_thread_union+THREAD_SIZE
+
 
 ready:	.byte 0
 
