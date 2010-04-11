@@ -289,10 +289,11 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
-		"\tmovl $1f,%%eax\n"
-		"\tpushl %%eax\n"
+		"\tmovl %2,%%eax\n"			// Adr Module stack
+		"\tsubl $4,%%eax\n"			// Reserv for ret adr
+		"\tmovl $1f,(%%eax)\n" 			// Push retadr to Module stack (adr is "1:")
 		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
-		"\tpushl %2\n"
+		"\tpushl %%eax\n"			// Module stack with ret adr
 		"\tpushl %1\n"
 		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
 		"\tpushl %0\n"
