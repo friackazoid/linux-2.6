@@ -267,6 +267,7 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	unsigned long addr = fn;
 	unsigned long flags = 0;
 	unsigned long prev_esp;
+	unsigned long prev_ebp;
 	unsigned long prev_sp0;
 
 	/* Get TSS */
@@ -279,7 +280,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	/* Save old ESP */
 	__asm__ __volatile__ (
 		"\tmovl %%esp,%0\n"
-	:"=r"(prev_esp));
+		"\tmovl %%ebp,%1\n"
+	:"=r"(prev_esp),"=r"(prev_ebp));
 
 	/* For correct int 0x80 */
 	prev_sp0 = t->x86_tss.sp0;
@@ -289,6 +291,7 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
+		"\tcli\n"
 		"\tmovl %2,%%eax\n"			// Adr Module stack
 		"\tsubl $4,%%eax\n"			// Reserv for ret adr
 		"\tmovl $1f,(%%eax)\n" 			// Push retadr to Module stack (adr is "1:")
@@ -300,19 +303,21 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tiret\n"
 		"\t1:\n"
 		"\txor %%eax,%%eax\n"
-		"\tmovl $2f,%%ebx\n"
 		"\tint $0x80\n"
-		"\t2:\n"
-		"\tnop\n"
-	::"r"(addr), "r"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax", "memory");
+		"\tmovl %3,%%esp\n"
+		"\tmovl %4,%%ebp\n"
+		"\tsti\n"
+	::"r"(addr), "r"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp): "eax", "memory");
 	
 #undef STR
 #undef __STR
 
 	/* Return old ESP */
+/*
 	__asm__ __volatile__ (
 		"\tmovl %0,%%esp\n"
 	::"r"(prev_esp));
+*/
 
 	/* Return correct TSS */
 	t->x86_tss.sp0 = prev_sp0;

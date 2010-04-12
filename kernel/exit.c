@@ -1046,11 +1046,12 @@ SYSCALL_DEFINE1(exit, int, error_code)
 
 SYSCALL_DEFINE0(mod_rettoker)
 {
+
 	__asm__ __volatile__(
-			"\tpopl %eax\n"
-			"\tpushl %ebx\n"
+			"\tpopl %eax\n" // + 1 to facl count
+			"\tpopl %ebx\n" // + 2 to fack count
+			"\tret\n"	// exit exit exit
 	);
-	return 0;
 }
 
 /*
