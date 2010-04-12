@@ -1048,6 +1048,7 @@ SYSCALL_DEFINE0(mod_rettoker)
 {
 	__asm__ __volatile__(
 			"\tpopl %eax\n"
+			"\tpushl %ebx\n"
 	);
 	return 0;
 }

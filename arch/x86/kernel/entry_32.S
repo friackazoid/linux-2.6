@@ -634,12 +634,12 @@ restore_nocheck:
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
 	
-	cmpl $0xe9, 0x04(%esp)
-	jnz orig_ret
-	addl $0x814, %esp
-	iret	
+#	cmpl $0xe9, 0x04(%esp)
+#	jnz orig_ret
+#	addl $0x814, %esp
+#	iret	
 
-orig_ret:
+#orig_ret:
 	INTERRUPT_RETURN
 .section .fixup,"ax"
 ENTRY(iret_exc)

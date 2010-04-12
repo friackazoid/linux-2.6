@@ -300,9 +300,11 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tiret\n"
 		"\t1:\n"
 		"\txor %%eax,%%eax\n"
+		"\tmovl $2f,%%ebx\n"
 		"\tint $0x80\n"
-		"\tmovl %3,%%esp\n"
-	::"r"(addr), "r"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp): "eax", "memory");
+		"\t2:\n"
+		"\tnop\n"
+	::"r"(addr), "r"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax", "memory");
 	
 #undef STR
 #undef __STR
