@@ -596,7 +596,6 @@ syscall_call:
 modcall_call:
 	pushl %eax			# save orig_eax
 	SAVEMC_ALL
-#	GET_THREAD_INFO(%ebp)
 
 	cmpl $(sr_modcalls), %eax
 	jae syscall_badsys
@@ -636,7 +635,6 @@ irq_return:
 	
 	cmpl $0xe9, 0x04(%esp)
 	jnz orig_ret
-	addl $0x814, %esp
 	iret	
 
 orig_ret:
