@@ -216,29 +216,38 @@ EXPORT_SYMBOL(kernel_thread);
 int start_security_thread_m (int (*fn) (void*), void *arg)
 {
 	unsigned long addr = fn;
-	unsigned long flags = 0,i;
-	unsigned char i_stack[24];
-	unsigned char *i_thread_info;
+	unsigned long flags = 0;
+	unsigned long prev_esp;
+	unsigned long prev_ebp;
+	unsigned long prev_sp0;
 
+	/* Get TSS */
+	int cpu = smp_processor_id();
+	struct tss_struct *t = &per_cpu(init_tss, cpu);
+
+	/* Build new psevdo-thread */
+	memcpy( t->x86_tss.sp2-PAGE_SIZE, current_thread_info(), sizeof(struct thread_info));
+
+	/* Save old ESP */
 	__asm__ __volatile__ (
 		"\tmovl %%esp,%0\n"
-	:"=r"(i_thread_info)::"eax");
+		"\tmovl %%ebp,%1\n"
+	:"=r"(prev_esp),"=r"(prev_ebp));
 
-	i_thread_info = ((unsigned int)i_thread_info & 0xfffff000)+ 0xfec;
+	/* For correct int 0x80 */
+	prev_sp0 = t->x86_tss.sp0;
+	t->x86_tss.sp0 = prev_esp-4; // fix for eax
 
-	for(i=0;i<24;i++)
-		i_stack[i] =(unsigned char) *(i_thread_info +i);
-		
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
 	__asm__ __volatile__ (
 		"\tcli\n"
-		"\tmovl $1f,%%eax\n"
-		"\tpushl %%eax\n"
-		"\tmovl %%esp,%%eax\n"
+		"\tmovl %2,%%eax\n"			// Adr Module stack
+		"\tsubl $4,%%eax\n"			// Reserv for ret adr
+		"\tmovl $1f,(%%eax)\n" 			// Push retadr to Module stack (adr is "1:")
 		"\tpushl $"STR(__MODULE_DS)"\n"
-		"\tpushl %%eax\n"
+		"\tpushl %%eax\n"			// Module stack with ret adr
 		"\tpushl %1\n"
 		"\tpushl $"STR(__MODULE_CS)"\n"
 		"\tpushl %0\n"
@@ -246,19 +255,19 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 		"\t1:\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tpopl %%eax\n"
-		"\tpopl %%eax\n"
-		"\tpopl %%esp\n"
+		"\tmovl %3,%%esp\n"
+		"\tmovl %4,%%ebp\n"
 		"\tsti\n"
-	::"r"(addr), "r" ( flags | X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF ): "eax", "memory");
+	::"r"(addr), "r"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp): "eax", "memory");
 	
 #undef STR
 #undef __STR
 
-	for(i=0;i<24;i++)
-		*(i_thread_info + i ) = i_stack[i];
-		
-	return 0;
+	/* Return correct TSS */
+	t->x86_tss.sp0 = prev_sp0;
+	
+	return 0;	
+
 }
 EXPORT_SYMBOL (start_security_thread_m);
 
