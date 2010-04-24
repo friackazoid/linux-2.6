@@ -234,6 +234,7 @@
 .endm
 
 .macro SAVEMC_ALL
+	cli
 	cld
 	PUSH_GS
 	pushl %fs
@@ -596,7 +597,6 @@ syscall_call:
 modcall_call:
 	pushl %eax			# save orig_eax
 	SAVEMC_ALL
-#	GET_THREAD_INFO(%ebp)
 
 	cmpl $(sr_modcalls), %eax
 	jae syscall_badsys
@@ -633,11 +633,9 @@ restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
-	
-#	cmpl $0xe9, 0x04(%esp)
-#	jnz orig_ret
-#	addl $0x814, %esp
-#	iret	
+	cmpl $0xe9, 0x04(%esp)
+	jnz orig_ret
+	iret	
 
 #orig_ret:
 	INTERRUPT_RETURN

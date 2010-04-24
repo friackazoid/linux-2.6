@@ -19,7 +19,7 @@
 	{							\
 		__asm__ __volatile__ (				\
 			"\tmovl %0, %%ebx\n"			\
-			"\tmovl $"STR(_SR_##name)", %%eax\n"	\
+			"\tmovl $"STR(__SR_mod_##name)", %%eax\n"	\
 			"\tint $0x80\n"				\
 		::"r"(lock) : "eax", "ebx","memory");		\
 	}

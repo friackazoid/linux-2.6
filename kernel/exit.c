@@ -1046,12 +1046,19 @@ SYSCALL_DEFINE1(exit, int, error_code)
 
 SYSCALL_DEFINE0(mod_rettoker)
 {
-
+#define __STR(X) #X			
+#define STR(X) __STR(X)
 	__asm__ __volatile__(
+			"\tmovl $"STR(__KERNEL_PERCPU)", %eax\n"
+			"\tmovl %eax, %fs\n" 		//restore selector of kernel level
+			"\tmovl $"STR(__KERNEL_STACK_CANARY)", %eax\n"
+			"\tmovl %eax, %gs\n" 		//restore selector of kernel level
 			"\tpopl %eax\n" // + 1 to facl count
 			"\tpopl %ebx\n" // + 2 to fack count
 			"\tret\n"	// exit exit exit
 	);
+#undef STR
+#undef __STR
 }
 
 /*

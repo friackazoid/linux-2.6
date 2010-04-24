@@ -4805,4 +4805,12 @@ static int __init slab_proc_init(void)
 	return 0;
 }
 module_init(slab_proc_init);
+
+#include <linux/syscalls.h>
+SYSCALL_DEFINE2(mod_kzalloc, size_t, size, gfp_t, flags)
+{
+	unsigned long addr;
+	addr = kzalloc (size, flags);
+	return addr;
+}
 #endif /* CONFIG_SLABINFO */
