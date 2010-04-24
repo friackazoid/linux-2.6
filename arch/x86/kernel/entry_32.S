@@ -234,6 +234,7 @@
 .endm
 
 .macro SAVEMC_ALL
+	cli
 	cld
 	PUSH_GS
 	pushl %fs

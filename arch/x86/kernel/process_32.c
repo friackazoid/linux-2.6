@@ -321,12 +321,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 #undef STR
 #undef __STR
 
-	/* Return old ESP */
-/*
-	__asm__ __volatile__ (
-		"\tmovl %0,%%esp\n"
-	::"r"(prev_esp));
-*/
+	/* Commit from  psevdo-thread to kernel thread */
+	memcpy( current_thread_info(), t->x86_tss.sp2-PAGE_SIZE, sizeof(struct thread_info));
 
 	/* Return correct TSS */
 	t->x86_tss.sp0 = prev_sp0;
