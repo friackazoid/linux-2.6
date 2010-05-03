@@ -278,6 +278,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	unsigned long prev_esp;
 	unsigned long prev_ebp;
 	unsigned long prev_sp0;
+	unsigned int  arg_count = 0 ;
+	unsigned int  i;
 
 	/* Get TSS */
 	int cpu = smp_processor_id();
@@ -295,10 +297,55 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	/* For correct int 0x80 */
 	prev_sp0 = t->x86_tss.sp0;
 	t->x86_tss.sp0 = prev_esp-4; // fix for eax
+	
+	/* Push args to new stack */
+/*	if(arg){
+		while(arg[arg_count])
+				arg_count++;
+		for( i = arg_count; i >= 0;  i--){
+			__asm__ __volatile__(
+				"\tmovl %1,%%eax\n"
+				"\tmul $4,%%eax\n"
+				"\taddl $8,%%eax\n"	//to ret
+				"\tmovl %0, %%ebx\n"
+				"\tsubl %%eax,%%ebx\n"
+				"\tmovl %3,(%%ebx)\n"
+			::"r"(t->x86_tss.sp2),"r"(arg_count - i),"r"(arg[i]));
+
+		}
+	}*/
 
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
+
+	if(arg){
+	__asm__ __volatile__ (
+		"\tcli\n"
+		"\tmovl %2,%%eax\n"			// Adr Module stack
+		"\tsubl $4,%%eax\n"			// Reserv for ret adr
+		"\tmovl $1f,(%%eax)\n" 			// Push retadr to Module stack (adr is "1:")
+		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
+		"\tpushl %%eax\n"			// Module stack with ret adr
+		"\tpushl %1\n"
+		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
+		"\tpushl $2f\n"
+		"\tiret\n"
+		"\t2:\n"
+		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
+		"\tmovw %%eax, %%fs\n"
+		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
+		"\tmovw %%eax, %%gs\n"
+		"\tmovl %5, %%eax\n"
+		"\tcall *%0\n"
+		"\t1:\n"
+		"\txor %%eax,%%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %3,%%esp\n"
+		"\tmovl %4,%%ebp\n"
+		"\tsti\n"
+	::"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "r"(arg): "eax", "memory");
+	}else{
 	__asm__ __volatile__ (
 		"\tcli\n"
 		"\tmovl %2,%%eax\n"			// Adr Module stack
@@ -316,8 +363,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tmovl %3,%%esp\n"
 		"\tmovl %4,%%ebp\n"
 		"\tsti\n"
-	::"r"(addr), "r"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp): "eax", "memory");
-	
+	::"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp): "eax", "memory");
+	}
 #undef STR
 #undef __STR
 

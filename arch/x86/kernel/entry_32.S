@@ -637,7 +637,7 @@ irq_return:
 	jnz orig_ret
 	iret	
 
-#orig_ret:
+orig_ret:
 	INTERRUPT_RETURN
 .section .fixup,"ax"
 ENTRY(iret_exc)

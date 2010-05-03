@@ -350,11 +350,13 @@
 #define __SR_mod_mutex_lock	2
 #define __SR_mod_kzalloc	3
 #define __SR_mod_mutex_unlock	4
+#define __SR_mod_kern_path	5
+#define __SR_mod_call_usermodehelper 6
 
 #ifdef __KERNEL__
 
 #define NR_syscalls 		338
-#define SR_modcalls		4
+#define SR_modcalls		6
 
 #define __ARCH_WANT_IPC_PARSE_VERSION
 #define __ARCH_WANT_OLD_READDIR

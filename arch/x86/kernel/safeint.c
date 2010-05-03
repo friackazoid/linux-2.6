@@ -1,5 +1,6 @@
 //#include <linux/asm/safeint.h>
 #include <linux/types.h>
+#include <linux/kmod.h>
 #include <asm/unistd.h>
 
 #include <linux/syscalls.h>
@@ -82,6 +83,39 @@ void* skzalloc (size_t size, gfp_t flags)
 //#undef __STR
 
 	return ret;
+}
+
+int skern_path ( const char *name, unsigned int flags, struct path *path)
+{
+	unsigned long ret;
+
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_mod_kern_path)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+	:"=r" (ret):"r"(name), "g"(flags), "r"(path) :"ebx","ecx", "edx","eax");
+
+	return ret;
+}
+
+int scall_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait) {
+	unsigned long ret;
+
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_mod_call_usermodehelper)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+	:"=r" (ret): "g"(path), "g"(argv), "g"(envp), "g"(wait) :"ebx","ecx", "edx", "esi", "eax");
+
+	return ret;
+
 }
 
 #undef STR

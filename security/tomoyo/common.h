@@ -228,8 +228,12 @@ struct tomoyo_double_path_acl_record {
 #define TOMOYO_KEYWORD_USE_PROFILE               "use_profile "
 #define TOMOYO_KEYWORD_IGNORE_GLOBAL_ALLOW_READ  "ignore_global_allow_read"
 /* A domain definition starts with <kernel>. */
-#define TOMOYO_ROOT_NAME                         "<kernel>"
+/* All application that didn't belong to any domain is unknown. */
+#define TOMOYO_ROOT_NAME                         "<unknown>"
 #define TOMOYO_ROOT_NAME_LEN                     (sizeof(TOMOYO_ROOT_NAME) - 1)
+
+#define TOMOYO_MODULE_NAME			 "<module>"
+#define TOMOYO_MODULE_NAME_LEN			 (sizeof(TOMOYO_MODULE_NAME) -1)
 
 /* Index numbers for Access Controls. */
 #define TOMOYO_MAC_FOR_FILE                  0  /* domain_policy.conf */

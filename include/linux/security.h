@@ -2031,6 +2031,7 @@ static inline int security_vm_enough_memory_kern(long pages)
 
 static inline int security_bprm_set_creds(struct linux_binprm *bprm)
 {
+
 	return cap_bprm_set_creds(bprm);
 }
 

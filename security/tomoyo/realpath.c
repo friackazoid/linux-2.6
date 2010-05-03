@@ -406,7 +406,20 @@ void __init tomoyo_realpath_init(void)
 	down_read(&tomoyo_domain_list_lock);
 	if (tomoyo_find_domain(TOMOYO_ROOT_NAME) != &tomoyo_kernel_domain)
 		panic("Can't register tomoyo_kernel_domain");
+
 	up_read(&tomoyo_domain_list_lock);
+
+	/* Initialize module domain  */
+	INIT_LIST_HEAD (&tomoyo_module_domain.acl_info_list);
+	tomoyo_module_domain.domainname = tomoyo_save_name (TOMOYO_MODULE_NAME);
+	list_add_tail(&tomoyo_module_domain.list, &tomoyo_domain_list);
+
+	down_read(&tomoyo_domain_list_lock);
+	if (tomoyo_find_domain(TOMOYO_MODULE_NAME) != &tomoyo_module_domain)
+		panic("Can't register tomoyo_kernel_domain");
+
+	up_read(&tomoyo_domain_list_lock);
+
 }
 
 /* Memory allocated for temporary purpose. */

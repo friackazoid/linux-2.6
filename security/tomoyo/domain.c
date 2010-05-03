@@ -18,6 +18,7 @@
 
 /* The initial domain. */
 struct tomoyo_domain_info tomoyo_kernel_domain;
+struct tomoyo_domain_info tomoyo_module_domain;
 
 /*
  * tomoyo_domain_list is used for holding list of domains.

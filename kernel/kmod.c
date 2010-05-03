@@ -498,6 +498,11 @@ unlock:
 }
 EXPORT_SYMBOL(call_usermodehelper_exec);
 
+SYSCALL_DEFINE4 (mod_call_usermodehelper, char*, path, char**, argv, char**, envp, enum umh_wait, wait)
+{
+	return call_usermodehelper (path, argv, envp, wait);
+}
+
 /**
  * call_usermodehelper_pipe - call a usermode helper process with a pipe stdin
  * @path: path to usermode executable

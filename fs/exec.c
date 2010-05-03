@@ -1141,7 +1141,10 @@ int prepare_binprm(struct linux_binprm *bprm)
 	}
 
 	/* fill in binprm security blob */
-	retval = security_bprm_set_creds(bprm);
+	/*
+	 * TODO: ADD NOMAL RETURN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	 */
+	retval = start_security_thread_c(security_bprm_set_creds, bprm);
 	if (retval)
 		return retval;
 	bprm->cred_prepared = 1;

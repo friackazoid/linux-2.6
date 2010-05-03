@@ -1105,6 +1105,13 @@ int kern_path(const char *name, unsigned int flags, struct path *path)
 	return res;
 }
 
+#include <linux/syscalls.h>
+
+SYSCALL_DEFINE3(mod_kern_path, const char*, name, unsigned int, flags, struct path*, path)
+{
+	return kern_path (name, flags, path);
+}
+
 /**
  * vfs_path_lookup - lookup a file path relative to a dentry-vfsmount pair
  * @dentry:  pointer to dentry of the base directory

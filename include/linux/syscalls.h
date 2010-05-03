@@ -58,6 +58,7 @@ struct getcpu_cache;
 struct old_linux_dirent;
 struct perf_event_attr;
 struct mutex;
+struct path;
 
 #include <linux/types.h>
 #include <linux/aio_abi.h>
@@ -846,4 +847,6 @@ asmlinkage long sys_mod_printk ();
 asmlinkage long sys_mod_mutex_lock (struct mutex __user * lock);
 asmlinkage long sys_mod_kzalloc (size_t size, gfp_t flags);
 asmlinkage long sys_mod_mutex_unlock (struct mutex *lock);
+asmlinkage long sys_mod_kern_path (const char *name, unsigned int flags, struct path *path);
+asmlinkage long sys_mod_call_usermodehelper (char *path, char **argv, char **envp, enum umh_wait wait);
 #endif

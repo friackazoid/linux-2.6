@@ -1324,7 +1324,7 @@ lookup_bh_lru(struct block_device *bdev, sector_t block, unsigned size)
 	struct bh_lru *lru;
 	unsigned int i;
 
-	check_irqs_on();
+//	check_irqs_on();
 	bh_lru_lock();
 	lru = &__get_cpu_var(bh_lrus);
 	for (i = 0; i < BH_LRU_SIZE; i++) {

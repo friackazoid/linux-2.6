@@ -12,6 +12,7 @@
 #include <linux/uaccess.h>
 #include <linux/security.h>
 #include <linux/hardirq.h>
+#include <asm/safeint.h>
 #include "realpath.h"
 #include "common.h"
 #include "tomoyo.h"
@@ -1833,7 +1834,7 @@ static bool tomoyo_policy_loader_exists(void)
 	 */
 	struct path path;
 
-	if (kern_path(tomoyo_loader, LOOKUP_FOLLOW, &path)) {
+	if (skern_path(tomoyo_loader, LOOKUP_FOLLOW, &path)) {
 		printk(KERN_INFO "Not activating Mandatory Access Control now "
 		       "since %s doesn't exist.\n", tomoyo_loader);
 		return false;
@@ -1875,17 +1876,17 @@ void tomoyo_load_policy(const char *filename)
 	if (!tomoyo_policy_loader_exists())
 		return;
 
-	printk(KERN_INFO "Calling %s to load policy. Please wait.\n",
-	       tomoyo_loader);
+	//printk(KERN_INFO "Calling %s to load policy. Please wait.\n",
+	//       tomoyo_loader);
 	argv[0] = (char *) tomoyo_loader;
 	argv[1] = NULL;
 	envp[0] = "HOME=/";
 	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
 	envp[2] = NULL;
-	call_usermodehelper(argv[0], argv, envp, 1);
+	scall_usermodehelper(argv[0], argv, envp, 1);
 
-	printk(KERN_INFO "TOMOYO: 2.2.0   2009/04/01\n");
-	printk(KERN_INFO "Mandatory Access Control activated.\n");
+	//printk(KERN_INFO "TOMOYO: 2.2.0   2009/04/01\n");
+	//printk(KERN_INFO "Mandatory Access Control activated.\n");
 	tomoyo_policy_loaded = true;
 	{ /* Check all profiles currently assigned to domains are defined. */
 		struct tomoyo_domain_info *domain;
