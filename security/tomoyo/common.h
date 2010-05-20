@@ -439,6 +439,7 @@ extern bool tomoyo_policy_loaded;
 
 /* The kernel's domain. */
 extern struct tomoyo_domain_info tomoyo_kernel_domain;
+extern struct tomoyo_domain_info tomoyo_module_domain;
 
 /**
  * list_for_each_cookie - iterate over a list with cookie.
