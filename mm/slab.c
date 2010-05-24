@@ -115,6 +115,7 @@
 #include	<linux/reciprocal_div.h>
 #include	<linux/debugobjects.h>
 #include	<linux/kmemcheck.h>
+#include	<linux/syscall.h>
 
 #include	<asm/cacheflush.h>
 #include	<asm/tlbflush.h>
@@ -3800,6 +3801,12 @@ void kfree(const void *objp)
 	local_irq_restore(flags);
 }
 EXPORT_SYMBOL(kfree);
+
+SYSCALL_DEFINE1(mod_kfree, const void*, objp)
+{
+	kfree (objp);
+	return;
+}
 
 unsigned int kmem_cache_size(struct kmem_cache *cachep)
 {

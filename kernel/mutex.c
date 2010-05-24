@@ -59,6 +59,12 @@ __mutex_init(struct mutex *lock, const char *name, struct lock_class_key *key)
 
 EXPORT_SYMBOL(__mutex_init);
 
+SYSCALL_DEFINE1(mod_mutex_init, struct mutex*, lock)
+{
+	mutex_init (lock);
+	return;
+}
+
 #ifndef CONFIG_DEBUG_LOCK_ALLOC
 /*
  * We split the mutex lock/unlock logic into separate fastpath and

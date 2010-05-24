@@ -354,8 +354,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\t2:\n"
 		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
 		"\tmovw %%eax, %%fs\n"
-		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
-		"\tmovw %%eax, %%gs\n"
+//		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
+//		"\tmovw %%eax, %%gs\n"
 		"\tmovl %6, %%eax\n"
 		"\tcall *%1\n"
 		"\t1:\n"
@@ -381,8 +381,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\t2:\n"
 		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
 		"\tmovw %%eax, %%fs\n"
-		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
-		"\tmovw %%eax, %%gs\n"
+//		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
+//		"\tmovw %%eax, %%gs\n"
 		"\tcall *%1\n"
 		"\t1:\n"
 		"\tmovl %%eax,%0\n"
@@ -396,9 +396,6 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 #undef STR
 #undef __STR
 
-	/* Commit from  psevdo-thread to kernel thread */
-	memcpy( current_thread_info(), t->x86_tss.sp2-PAGE_SIZE, sizeof(struct thread_info));
-
 	/* Return correct TSS */
 	t->x86_tss.sp0 = prev_sp0;
 	
@@ -406,8 +403,7 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 }
 EXPORT_SYMBOL (start_security_thread_c);
 
-
-int start_security_thread_c2 (int (*fn) (void*), void *arg1, void *arg2)
+int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 {
 	int retv;
 	unsigned long addr = fn;
@@ -425,6 +421,9 @@ int start_security_thread_c2 (int (*fn) (void*), void *arg1, void *arg2)
 
 	/* Save old ESP */
 	__asm__ __volatile__ (
+		"\tpushl %%gs\n"
+		"\tpushl %%esp\n"
+		"\tpushl %%ebp\n"
 		"\tmovl %%esp,%0\n"
 		"\tmovl %%ebp,%1\n"
 	:"=r"(prev_esp),"=r"(prev_ebp));
@@ -436,6 +435,9 @@ int start_security_thread_c2 (int (*fn) (void*), void *arg1, void *arg2)
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
+
+	switch(argc){
+	case 2:
 	__asm__ __volatile__ (
 		"\tcli\n"
 		"\tmovl %3,%%eax\n"			// Adr Module stack
@@ -450,8 +452,8 @@ int start_security_thread_c2 (int (*fn) (void*), void *arg1, void *arg2)
 		"\t2:\n"
 		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
 		"\tmovw %%eax, %%fs\n"
-		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
-		"\tmovw %%eax, %%gs\n"
+//		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
+//		"\tmovw %%eax, %%gs\n"
 		"\tmovl %6, %%eax\n"
 		"\tmovl %7, %%ebx\n"
 		"\tcall *%1\n"
@@ -459,53 +461,17 @@ int start_security_thread_c2 (int (*fn) (void*), void *arg1, void *arg2)
 		"\tmovl %%eax, %0\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %4,%%esp\n"
-		"\tmovl %5,%%ebp\n"
+		"\tadd $0x14,%%esp\n"
+		"\tpopl %%ebp\n"
+		"\tpopl %%esp\n"
+		"\tpopl %%gs\n"
+//		"\tmovl %4,%%esp\n"
+//		"\tmovl %5,%%ebp\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "r"(arg1), "r"(arg2): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "g"(arg), "g"(arg+4) :"memory");
+	break;
 
-#undef STR
-#undef __STR
-
-	/* Commit from  psevdo-thread to kernel thread */
-	memcpy( current_thread_info(), t->x86_tss.sp2-PAGE_SIZE, sizeof(struct thread_info));
-
-	/* Return correct TSS */
-	t->x86_tss.sp0 = prev_sp0;
-	
-	return retv;	
-}
-EXPORT_SYMBOL (start_security_thread_c2);
-
-int start_security_thread_c3 (int (*fn) (void*), void *arg1, void *arg2, void *arg3)
-{
-	int retv;
-	unsigned long addr = fn;
-	unsigned long flags = 0;
-	unsigned long prev_esp;
-	unsigned long prev_ebp;
-	unsigned long prev_sp0;
-
-	/* Get TSS */
-	int cpu = smp_processor_id();
-	struct tss_struct *t = &per_cpu(init_tss, cpu);
-
-	/* Build new psevdo-thread */
-	memcpy( t->x86_tss.sp2-PAGE_SIZE, current_thread_info(), sizeof(struct thread_info));
-
-	/* Save old ESP */
-	__asm__ __volatile__ (
-		"\tmovl %%esp,%0\n"
-		"\tmovl %%ebp,%1\n"
-	:"=r"(prev_esp),"=r"(prev_ebp));
-
-	/* For correct int 0x80 */
-	prev_sp0 = t->x86_tss.sp0;
-	t->x86_tss.sp0 = prev_esp-4; // fix for eax
-
-#define __STR(X) #X
-#define STR(X) __STR(X)
-
+	case 3:
 	__asm__ __volatile__ (
 		"\tcli\n"
 		"\tmovl %3,%%eax\n"			// Adr Module stack
@@ -520,33 +486,41 @@ int start_security_thread_c3 (int (*fn) (void*), void *arg1, void *arg2, void *a
 		"\t2:\n"
 		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
 		"\tmovw %%eax, %%fs\n"
-		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
-		"\tmovw %%eax, %%gs\n"
+//		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
+//		"\tmovw %%eax, %%gs\n"
 		"\tmovl %6, %%eax\n"
 		"\tmovl %7, %%ebx\n"
-		"\tmovl %8, %%ecx\n"
+		"\tmovl %8, %%edx\n"
 		"\tcall *%1\n"
 		"\t1:\n"
-		"\tmovl %%eax, %0\n"
+		"\tmovl %%eax,%0\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %4,%%esp\n"
-		"\tmovl %5,%%ebp\n"
+		"\tadd $0x14,%%esp\n"
+		"\tpopl %%ebp\n"
+		"\tpopl %%esp\n"
+		"\tpopl %%gs\n"
+//		"\tadd $20,$esp\n"
+//		"\tmovl %4,%%esp\n"
+//		"\tmovl %5,%%ebp\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "r"(arg1), "r"(arg2), "r"(arg3): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "g"(arg), "g"(arg+4), "g"(arg+8));
+	break;
 
+	}
 #undef STR
 #undef __STR
 
-	/* Commit from  psevdo-thread to kernel thread */
-	memcpy( current_thread_info(), t->x86_tss.sp2-PAGE_SIZE, sizeof(struct thread_info));
+	/* Fix struct addresses */
+	cpu = smp_processor_id();
+	t = &per_cpu(init_tss, cpu);
 
 	/* Return correct TSS */
 	t->x86_tss.sp0 = prev_sp0;
 	
 	return retv;	
 }
-EXPORT_SYMBOL (start_security_thread_c3);
+EXPORT_SYMBOL (start_security_thread_cm);
 
 int start_module_thread (int (*fn)(void*), void *arg, unsigned long flags)
 {

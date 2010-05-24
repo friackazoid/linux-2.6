@@ -13,6 +13,7 @@
 #include "common.h"
 #include "tomoyo.h"
 #include "realpath.h"
+#include "module.h"
 
 static int tomoyo_cred_alloc_blank(struct cred *new, gfp_t gfp)
 {
@@ -58,8 +59,8 @@ static int tomoyo_bprm_set_creds(struct linux_binprm *bprm)
 	 * Load policy if /sbin/tomoyo-init exists and /sbin/init is requested
 	 * for the first time.
 	 */
-	if (!tomoyo_policy_loaded)
-		tomoyo_load_policy(bprm->filename);
+	//if (!tomoyo_policy_loaded)
+	//	tomoyo_load_policy(bprm->filename);
 	/*
 	 * Tell tomoyo_bprm_check_security() is called for the first time of an
 	 * execve operation.
@@ -67,6 +68,26 @@ static int tomoyo_bprm_set_creds(struct linux_binprm *bprm)
 	bprm->cred->security = NULL;
 	return 0;
 }
+
+/*static int tomoyo_task_create (unsigned long clone_flags)
+{
+	tomoyo_domain_info *domain = domoyo_domain ();
+	tomoyo_path_info *path;
+	tomoyo_acl_info *ptr;
+
+	switch (domain.profile) {
+		case 0:
+			return 0;
+		case 1:
+			if(!strcmp(domain->domainname, TOMOYO_ADMINISTRATOR_NAME)) {
+				down_read (&tomoyo_domain_acl_info_list_lock);
+				list_for_each_entry(ptr, domain->acl_info_list, list) {
+					struct 
+				}
+				up_read (&tomoyo_domain_acl_list_lock);
+			}
+	}
+}*/
 
 static int tomoyo_bprm_check_security(struct linux_binprm *bprm)
 {
@@ -205,6 +226,7 @@ static struct security_operations tomoyo_security_ops = {
 	.cred_transfer	     = tomoyo_cred_transfer,
 	.bprm_set_creds      = tomoyo_bprm_set_creds,
 	.bprm_check_security = tomoyo_bprm_check_security,
+//	.task_create	     = tomoyo_task_create,
 	.file_fcntl          = tomoyo_file_fcntl,
 	.dentry_open         = tomoyo_dentry_open,
 	.path_truncate       = tomoyo_path_truncate,
@@ -215,6 +237,7 @@ static struct security_operations tomoyo_security_ops = {
 	.path_mknod          = tomoyo_path_mknod,
 	.path_link           = tomoyo_path_link,
 	.path_rename         = tomoyo_path_rename,
+	.module_set_cred     = tomoyo_module_set_cred,
 };
 
 static int __init tomoyo_init(void)

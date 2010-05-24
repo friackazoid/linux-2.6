@@ -76,7 +76,7 @@ void* skzalloc (size_t size, gfp_t flags)
 		"\tmovl %2, %%ecx\n"
 		"\tmovl $"STR(__SR_mod_kzalloc)", %%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %%eax, %0"
+		"\tmovl %%eax, %0\n"
 	:"=r" (ret):"r"(size), "r"(flags) :"ebx","ecx", "eax");
 
 //#undef STR
@@ -95,7 +95,7 @@ int skern_path ( const char *name, unsigned int flags, struct path *path)
 		"\tmovl %3, %%edx\n"
 		"\tmovl $"STR(__SR_mod_kern_path)", %%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %%eax, %0"
+		"\tmovl %%eax, %0\n"
 	:"=r" (ret):"r"(name), "g"(flags), "r"(path) :"ebx","ecx", "edx","eax");
 
 	return ret;
@@ -111,12 +111,66 @@ int scall_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wai
 		"\tmovl %4, %%esi\n"
 		"\tmovl $"STR(__SR_mod_call_usermodehelper)", %%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %%eax, %0"
+		"\tmovl %%eax, %0\n"
 	:"=r" (ret): "g"(path), "g"(argv), "g"(envp), "g"(wait) :"ebx","ecx", "edx", "esi", "eax");
 
 	return ret;
 
 }
 
+void skfree (const void *objp)
+{
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_kfree)", %%eax\n"
+		"\tint $0x80\n"
+	::"r"(objp) : "eax", "ebx","memory");
+
+}
+
+void smutex_init (struct mutex* lock)
+{
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_mutex_init)", %%eax\n"
+		"\tint $0x80\n"
+	::"r"(lock) : "eax", "ebx","memory");
+
+}
+
+struct dentry* ssecurityfs_create_dir (const char* name, struct dentry *parent)
+{
+	unsigned long ret;
+
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_mod_securityfs_create_dir)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+	:"=r" (ret): "r"(name), "r"(parent) :"ebx","ecx","eax");
+
+	return ret;
+
+}
+
+struct dentry* ssecurityfs_create_file (const char* name, mode_t mode, struct dentry *parent, void* data, const struct file_operations* fops)
+{
+	unsigned long ret;
+
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl %5, %%edi\n"
+		"\tmovl $"STR(__SR_mod_securityfs_create_file)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+	:"=r" (ret): "g"(name), "g"(mode), "g"(parent), "g"(data), "g"(fops) :"ebx","ecx", "edx", "esi", "eax");
+
+	return ret;
+
+}
 #undef STR
 #undef __STR

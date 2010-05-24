@@ -619,8 +619,8 @@ static int tomoyo_update_file_acl(const char *filename, u8 perm,
 				  const bool is_delete)
 {
 	if (perm > 7 || !perm) {
-		printk(KERN_DEBUG "%s: Invalid permission '%d %s'\n",
-		       __func__, perm, filename);
+		//printk(KERN_DEBUG "%s: Invalid permission '%d %s'\n",
+		//       __func__, perm, filename);
 		return -EINVAL;
 	}
 	if (filename[0] != '@' && tomoyo_strendswith(filename, "/"))
@@ -755,9 +755,9 @@ static int tomoyo_check_file_perm2(struct tomoyo_domain_info * const domain,
 	if (!error)
 		return 0;
 	if (tomoyo_verbose_mode(domain))
-		printk(KERN_WARNING "TOMOYO-%s: Access '%s(%s) %s' denied "
-		       "for %s\n", tomoyo_get_msg(is_enforce), msg, operation,
-		       filename->name, tomoyo_get_last_name(domain));
+		//printk(KERN_WARNING "TOMOYO-%s: Access '%s(%s) %s' denied "
+		//       "for %s\n", tomoyo_get_msg(is_enforce), msg, operation,
+		//       filename->name, tomoyo_get_last_name(domain));
 	if (is_enforce)
 		return error;
 	if (mode == 1 && tomoyo_domain_quota_is_ok(domain)) {
@@ -1072,9 +1072,9 @@ static int tomoyo_check_single_path_permission2(struct tomoyo_domain_info *
 	if (!error)
 		goto ok;
 	if (tomoyo_verbose_mode(domain))
-		printk(KERN_WARNING "TOMOYO-%s: Access '%s %s' denied for %s\n",
-		       tomoyo_get_msg(is_enforce), msg, filename->name,
-		       tomoyo_get_last_name(domain));
+		//printk(KERN_WARNING "TOMOYO-%s: Access '%s %s' denied for %s\n",
+		//       tomoyo_get_msg(is_enforce), msg, filename->name,
+		//       tomoyo_get_last_name(domain));
 	if (mode == 1 && tomoyo_domain_quota_is_ok(domain)) {
 		const char *name = tomoyo_get_file_pattern(filename)->name;
 		tomoyo_update_single_path_acl(operation, name, domain, false);
@@ -1295,10 +1295,10 @@ int tomoyo_check_2path_perm(struct tomoyo_domain_info * const domain,
 	if (!error)
 		goto out;
 	if (tomoyo_verbose_mode(domain))
-		printk(KERN_WARNING "TOMOYO-%s: Access '%s %s %s' "
-		       "denied for %s\n", tomoyo_get_msg(is_enforce),
-		       msg, buf1->name, buf2->name,
-		       tomoyo_get_last_name(domain));
+		//printk(KERN_WARNING "TOMOYO-%s: Access '%s %s %s' "
+		//       "denied for %s\n", tomoyo_get_msg(is_enforce),
+		//       msg, buf1->name, buf2->name,
+		//       tomoyo_get_last_name(domain));
 	if (mode == 1 && tomoyo_domain_quota_is_ok(domain)) {
 		const char *name1 = tomoyo_get_file_pattern(buf1)->name;
 		const char *name2 = tomoyo_get_file_pattern(buf2)->name;

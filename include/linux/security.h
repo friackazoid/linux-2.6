@@ -61,6 +61,7 @@ extern int cap_capset(struct cred *new, const struct cred *old,
 		      const kernel_cap_t *inheritable,
 		      const kernel_cap_t *permitted);
 extern int cap_bprm_set_creds(struct linux_binprm *bprm);
+
 extern int cap_bprm_secureexec(struct linux_binprm *bprm);
 extern int cap_inode_setxattr(struct dentry *dentry, const char *name,
 			      const void *value, size_t size, int flags);
@@ -1434,6 +1435,9 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
  * 	@inode we wish to set the security context of.
  *	@ctx is a pointer in which to place the allocated security context.
  *	@ctxlen points to the place to put the length of @ctx.
+ *
+ * @module_set_cred:
+ * 	Set security struct to module
  * This is the main security structure.
  */
 struct security_operations {
@@ -1729,6 +1733,8 @@ struct security_operations {
 				 struct audit_context *actx);
 	void (*audit_rule_free) (void *lsmrule);
 #endif /* CONFIG_AUDIT */
+
+	void (*module_set_cred) (struct module*);
 };
 
 /* prototypes */
@@ -1760,6 +1766,7 @@ int security_vm_enough_memory(long pages);
 int security_vm_enough_memory_mm(struct mm_struct *mm, long pages);
 int security_vm_enough_memory_kern(long pages);
 int security_bprm_set_creds(struct linux_binprm *bprm);
+void security_module_set_cred (struct module* module);
 int security_bprm_check(struct linux_binprm *bprm);
 void security_bprm_committing_creds(struct linux_binprm *bprm);
 void security_bprm_committed_creds(struct linux_binprm *bprm);
@@ -2033,6 +2040,10 @@ static inline int security_bprm_set_creds(struct linux_binprm *bprm)
 {
 
 	return cap_bprm_set_creds(bprm);
+}
+
+static inline void security_module_set_cred (struct module* module)
+{
 }
 
 static inline int security_bprm_check(struct linux_binprm *bprm)

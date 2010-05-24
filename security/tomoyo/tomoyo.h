@@ -79,6 +79,10 @@ int tomoyo_find_next_domain(struct linux_binprm *bprm);
 #define TOMOYO_MANAGER               8
 
 extern struct tomoyo_domain_info tomoyo_kernel_domain;
+extern struct tomoyo_domain_info tomoyo_module_domain;
+extern struct tomoyo_domain_info tomoyo_internet_domain;
+extern struct tomoyo_domain_info tomoyo_administrator_domain;
+extern struct tomoyo_domain_info tomoyo_office_domain;
 
 static inline struct tomoyo_domain_info *tomoyo_domain(void)
 {

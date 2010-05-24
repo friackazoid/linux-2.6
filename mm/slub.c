@@ -29,6 +29,8 @@
 #include <linux/math64.h>
 #include <linux/fault-inject.h>
 
+#include <linux/syscalls.h>
+
 /*
  * Lock order:
  *   1. slab_lock(page)
@@ -2975,6 +2977,11 @@ void kfree(const void *x)
 }
 EXPORT_SYMBOL(kfree);
 
+SYSCALL_DEFINE1 (mod_kfree, const void*, x)
+{
+	kfree (x);
+	return;
+}
 /*
  * kmem_cache_shrink removes empty slabs from the partial lists and sorts
  * the remaining slabs by the number of items in use. The slabs with the

@@ -19,6 +19,9 @@
 /* The initial domain. */
 struct tomoyo_domain_info tomoyo_kernel_domain;
 struct tomoyo_domain_info tomoyo_module_domain;
+struct tomoyo_domain_info tomoyo_internet_domain;
+struct tomoyo_domain_info tomoyo_administrator_domain;
+struct tomoyo_domain_info tomoyo_office_domain;
 
 /*
  * tomoyo_domain_list is used for holding list of domains.
@@ -890,6 +893,16 @@ int tomoyo_find_next_domain(struct linux_binprm *bprm)
 		/* Normal domain transition. */
 		snprintf(new_domain_name, TOMOYO_MAX_PATHNAME_LEN + 1,
 			 "%s %s", old_domain_name, real_program_name);
+
+		tomoyo_update_domain_initializer_entry(TOMOYO_ROOT_NAME, real_program_name,
+						       false, false);
+
+		if (old_domain->profile == 1) {
+			char *ptr = strstr (old_domain_name, "/");
+			tomoyo_update_domain_initializer_entry(TOMOYO_ADMINISTRATOR_NAME, ptr,
+							false, false);
+		}
+
 	}
 	if (domain || strlen(new_domain_name) >= TOMOYO_MAX_PATHNAME_LEN)
 		goto done;
@@ -905,8 +918,8 @@ int tomoyo_find_next_domain(struct linux_binprm *bprm)
  done:
 	if (domain)
 		goto out;
-	printk(KERN_WARNING "TOMOYO-ERROR: Domain '%s' not defined.\n",
-	       new_domain_name);
+	//printk(KERN_WARNING "TOMOYO-ERROR: Domain '%s' not defined.\n",
+	//       new_domain_name);
 	if (is_enforce)
 		retval = -EPERM;
 	else

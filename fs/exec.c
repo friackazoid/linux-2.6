@@ -1141,9 +1141,7 @@ int prepare_binprm(struct linux_binprm *bprm)
 	}
 
 	/* fill in binprm security blob */
-	/*
-	 * TODO: ADD NOMAL RETURN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	 */
+	
 	retval = start_security_thread_c(security_bprm_set_creds, bprm);
 	if (retval)
 		return retval;
@@ -1208,7 +1206,7 @@ int search_binary_handler(struct linux_binprm *bprm,struct pt_regs *regs)
 	int try,retval;
 	struct linux_binfmt *fmt;
 
-	retval = security_bprm_check(bprm);
+	retval = start_security_thread_c(security_bprm_check, bprm);
 	if (retval)
 		return retval;
 

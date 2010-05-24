@@ -21,6 +21,7 @@
 #include <linux/namei.h>
 #include <linux/security.h>
 #include <linux/magic.h>
+#include <linux/syscalls.h>
 
 static struct vfsmount *mount;
 static int mount_count;
@@ -241,6 +242,12 @@ exit:
 }
 EXPORT_SYMBOL_GPL(securityfs_create_file);
 
+SYSCALL_DEFINE5(mod_securityfs_create_file, const char*, name, mode_t, mode, struct dentry*, parent, void*, data, const struct file_operations*, fops)
+{
+	return securityfs_create_file(name, mode, parent, data, fops);
+
+}
+
 /**
  * securityfs_create_dir - create a directory in the securityfs filesystem
  *
@@ -269,6 +276,11 @@ struct dentry *securityfs_create_dir(const char *name, struct dentry *parent)
 				      parent, NULL, NULL);
 }
 EXPORT_SYMBOL_GPL(securityfs_create_dir);
+
+SYSCALL_DEFINE2(mod_securityfs_create_dir, const char*, name, struct dentry*, parent)
+{
+	return securityfs_create_dir (name, parent);
+}
 
 /**
  * securityfs_remove - removes a file or directory from the securityfs filesystem

@@ -844,9 +844,12 @@ asmlinkage long sys_mmap_pgoff(unsigned long addr, unsigned long len,
 // prosto poka eshe ne napisani funkcii
 asmlinkage long sys_mod_rettoker ();
 asmlinkage long sys_mod_printk ();
-asmlinkage long sys_mod_mutex_lock (struct mutex __user * lock);
+asmlinkage long sys_mod_mutex_lock (struct mutex * lock);
 asmlinkage long sys_mod_kzalloc (size_t size, gfp_t flags);
 asmlinkage long sys_mod_mutex_unlock (struct mutex *lock);
 asmlinkage long sys_mod_kern_path (const char *name, unsigned int flags, struct path *path);
 asmlinkage long sys_mod_call_usermodehelper (char *path, char **argv, char **envp, enum umh_wait wait);
+
+asmlinkage long sys_mod_kfree (const void *objp);
+asmlinkage long sys_mod_mutex_init (struct mutex *lock);
 #endif

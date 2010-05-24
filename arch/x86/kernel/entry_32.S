@@ -255,7 +255,6 @@
 	SET_KERNEL_GS %edx
 .endm
 
-
 .macro RESTMC_ALL
 	popl %ebx
 	popl %ecx
@@ -263,7 +262,7 @@
 	popl %esi
 	popl %edi
 	popl %ebp
-#	popl %eax
+	popl %eax
 	addl $0x4,%esp
 	popl %ds
 	popl %es
@@ -600,10 +599,9 @@ modcall_call:
 
 	cmpl $(sr_modcalls), %eax
 	jae syscall_badsys
-fast_exit:	
+fast_exit:
 	call *mod_call_table(,%eax,4)
 	RESTMC_ALL
-#	pushl $(start_security_thread_c)
 	iret	
 
 syscall_exit:
@@ -633,11 +631,6 @@ restore_nocheck:
 	RESTORE_REGS 4			# skip orig_eax/error_code
 	CFI_ADJUST_CFA_OFFSET -4
 irq_return:
-	cmpl $0xe9, 0x04(%esp)
-	jnz orig_ret
-	iret	
-
-orig_ret:
 	INTERRUPT_RETURN
 .section .fixup,"ax"
 ENTRY(iret_exc)

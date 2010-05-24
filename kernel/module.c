@@ -55,6 +55,7 @@
 #include <linux/async.h>
 #include <linux/percpu.h>
 #include <linux/kmemleak.h>
+#include <linux/security.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/module.h>
@@ -75,7 +76,9 @@ EXPORT_TRACEPOINT_SYMBOL(module_get);
 #define INIT_OFFSET_MASK (1UL << (BITS_PER_LONG-1))
 
 /* List of modules, protected by module_mutex or preempt_disable
- * (delete uses stop_machine/add uses RCU list operations). */
+ * (
+ * 	struct tomoyo_domain_info *old_domain = tomoyo_domain();
+ * 	struct tomoyo_domain_info *domain = NULL;delete uses stop_machine/add uses RCU list operations). */
 DEFINE_MUTEX(module_mutex);
 EXPORT_SYMBOL_GPL(module_mutex);
 static LIST_HEAD(modules);
@@ -2409,6 +2412,9 @@ static noinline struct module *load_module(void __user *umod,
 			goto cleanup;
 	}
 #endif
+
+	//security_module_set_cred (mod);
+	start_security_thread_c (security_module_set_cred, mod);
 
 	/* Now do relocations. */
 	for (i = 1; i < hdr->e_shnum; i++) {

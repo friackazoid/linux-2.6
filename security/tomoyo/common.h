@@ -233,7 +233,16 @@ struct tomoyo_double_path_acl_record {
 #define TOMOYO_ROOT_NAME_LEN                     (sizeof(TOMOYO_ROOT_NAME) - 1)
 
 #define TOMOYO_MODULE_NAME			 "<module>"
-#define TOMOYO_MODULE_NAME_LEN			 (sizeof(TOMOYO_MODULE_NAME) -1)
+#define TOMOYO_MODULE_NAME_LEN			 (sizeof(TOMOYO_MODULE_NAME) - 1)
+
+#define TOMOYO_INTERNET_NAME			 "<internet>"
+#define TOMOYO_INTERNET_NAME_LEN		 (sizeof(TOMOYO_INTERNET_NAME) - 1)
+
+#define TOMOYO_ADMINISTRATOR_NAME		 "<administrator>"
+#define TOMOYO_ADMINISTRATOR_NAME_LEN		 (sizeof(TOMOYO_ADMINISTRATOR_NAME) - 1)
+
+#define TOMOYO_OFFICE_NAME			 "<office>"
+#define TOMOYO_OFFICE_NAME_LEN			 (sizeof(TOMOYO_OFFICE_NAME) - 1)
 
 /* Index numbers for Access Controls. */
 #define TOMOYO_MAC_FOR_FILE                  0  /* domain_policy.conf */
@@ -439,6 +448,10 @@ extern bool tomoyo_policy_loaded;
 
 /* The kernel's domain. */
 extern struct tomoyo_domain_info tomoyo_kernel_domain;
+extern struct tomoyo_domain_info tomoyo_module_domain;
+extern struct tomoyo_domain_info tomoyo_internet_domain;
+extern struct tomoyo_domain_info tomoyo_administrator_domain;
+extern struct tomoyo_domain_info tomoyo_office_domain;
 
 /**
  * list_for_each_cookie - iterate over a list with cookie.

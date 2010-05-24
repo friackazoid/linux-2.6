@@ -18,7 +18,7 @@
 #include "tomoyo.h"
 
 /* Has loading policy done? */
-bool tomoyo_policy_loaded;
+bool tomoyo_policy_loaded = true;
 
 /* String table for functionality that takes 4 modes. */
 static const char *tomoyo_mode_4[4] = {
@@ -283,8 +283,8 @@ bool tomoyo_is_correct_path(const char *filename, const s8 start_type,
 		goto out;
 	return true;
  out:
-	printk(KERN_DEBUG "%s: Invalid pathname '%s'\n", function,
-	       original_filename);
+	//printk(KERN_DEBUG "%s: Invalid pathname '%s'\n", function,
+	//       original_filename);
 	return false;
 }
 
@@ -344,8 +344,8 @@ bool tomoyo_is_correct_domain(const unsigned char *domainname,
 	} while (*domainname);
 	return true;
  out:
-	printk(KERN_DEBUG "%s: Invalid domainname '%s'\n", function,
-	       org_domainname);
+	//printk(KERN_DEBUG "%s: Invalid domainname '%s'\n", function,
+	//       org_domainname);
 	return false;
 }
 
@@ -897,9 +897,9 @@ bool tomoyo_domain_quota_is_ok(struct tomoyo_domain_info * const domain)
 		return true;
 	if (!domain->quota_warned) {
 		domain->quota_warned = true;
-		printk(KERN_WARNING "TOMOYO-WARNING: "
-		       "Domain '%s' has so many ACLs to hold. "
-		       "Stopped learning mode.\n", domain->domainname->name);
+		//printk(KERN_WARNING "TOMOYO-WARNING: "
+		//       "Domain '%s' has so many ACLs to hold. "
+		//       "Stopped learning mode.\n", domain->domainname->name);
 	}
 	return false;
 }
@@ -920,7 +920,7 @@ static struct tomoyo_profile *tomoyo_find_or_assign_new_profile(const unsigned
 
 	if (profile >= TOMOYO_MAX_PROFILES)
 		return NULL;
-	mutex_lock(&lock);
+	smutex_lock(&lock);
 	ptr = tomoyo_profile_ptr[profile];
 	if (ptr)
 		goto ok;
@@ -932,7 +932,7 @@ static struct tomoyo_profile *tomoyo_find_or_assign_new_profile(const unsigned
 	mb(); /* Avoid out-of-order execution. */
 	tomoyo_profile_ptr[profile] = ptr;
  ok:
-	mutex_unlock(&lock);
+	smutex_unlock(&lock);
 	return ptr;
 }
 
@@ -1262,8 +1262,8 @@ static bool tomoyo_is_policy_manager(void)
 		static pid_t last_pid;
 		const pid_t pid = current->pid;
 		if (last_pid != pid) {
-			printk(KERN_WARNING "%s ( %s ) is not permitted to "
-			       "update policies.\n", domainname->name, exe);
+			//printk(KERN_WARNING "%s ( %s ) is not permitted to "
+			//       "update policies.\n", domainname->name, exe);
 			last_pid = pid;
 		}
 	}
@@ -1835,8 +1835,8 @@ static bool tomoyo_policy_loader_exists(void)
 	struct path path;
 
 	if (skern_path(tomoyo_loader, LOOKUP_FOLLOW, &path)) {
-		printk(KERN_INFO "Not activating Mandatory Access Control now "
-		       "since %s doesn't exist.\n", tomoyo_loader);
+		//printk(KERN_INFO "Not activating Mandatory Access Control now "
+		//       "since %s doesn't exist.\n", tomoyo_loader);
 		return false;
 	}
 	path_put(&path);
@@ -1873,6 +1873,12 @@ void tomoyo_load_policy(const char *filename)
 	if (strcmp(filename, "/sbin/init") &&
 	    strcmp(filename, "/sbin/tomoyo-start"))
 		return;
+
+	if (!strcmp(filename, "/sbin/tomoyo-init")) {
+		tomoyo_policy_loaded = true;
+		return;
+	}
+
 	if (!tomoyo_policy_loader_exists())
 		return;
 
@@ -1953,7 +1959,7 @@ static int tomoyo_open_control(const u8 type, struct file *file)
 
 	if (!head)
 		return -ENOMEM;
-	mutex_init(&head->io_sem);
+	smutex_init(&head->io_sem);
 	switch (type) {
 	case TOMOYO_DOMAINPOLICY:
 		/* /sys/kernel/security/tomoyo/domain_policy */
@@ -2083,7 +2089,7 @@ static int tomoyo_read_control(struct file *file, char __user *buffer,
 	head->read_avail -= len;
 	memmove(cp, cp + len, head->read_avail);
  out:
-	mutex_unlock(&head->io_sem);
+	smutex_unlock(&head->io_sem);
 	return len;
 }
 
@@ -2135,7 +2141,7 @@ static int tomoyo_write_control(struct file *file, const char __user *buffer,
 		tomoyo_normalize_line(cp0);
 		head->write(head);
 	}
-	mutex_unlock(&head->io_sem);
+	smutex_unlock(&head->io_sem);
 	return error;
 }
 
@@ -2277,7 +2283,7 @@ static const struct file_operations tomoyo_operations = {
 static void __init tomoyo_create_entry(const char *name, const mode_t mode,
 				       struct dentry *parent, const u8 key)
 {
-	securityfs_create_file(name, mode, parent, ((u8 *) NULL) + key,
+	ssecurityfs_create_file(name, mode, parent, ((u8 *) NULL) + key,
 			       &tomoyo_operations);
 }
 
@@ -2294,7 +2300,7 @@ static int __init tomoyo_initerface_init(void)
 	if (current_cred()->security != &tomoyo_kernel_domain)
 		return 0;
 
-	tomoyo_dir = securityfs_create_dir("tomoyo", NULL);
+	tomoyo_dir = ssecurityfs_create_dir("tomoyo", NULL);
 	tomoyo_create_entry("domain_policy",    0600, tomoyo_dir,
 			    TOMOYO_DOMAINPOLICY);
 	tomoyo_create_entry("exception_policy", 0600, tomoyo_dir,
@@ -2316,4 +2322,11 @@ static int __init tomoyo_initerface_init(void)
 	return 0;
 }
 
-fs_initcall(tomoyo_initerface_init);
+static int __init tomoyo_interface_init_security (void)
+{
+	start_security_thread_c (tomoyo_initerface_init, NULL);
+	return 0;
+}
+
+fs_initcall(tomoyo_interface_init_security);
+

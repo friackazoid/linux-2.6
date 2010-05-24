@@ -352,11 +352,15 @@
 #define __SR_mod_mutex_unlock	4
 #define __SR_mod_kern_path	5
 #define __SR_mod_call_usermodehelper 6
+#define __SR_mod_kfree		7
+#define __SR_mod_mutex_init	8
+#define __SR_mod_securityfs_create_dir 9
+#define __SR_mod_securityfs_create_file 10
 
 #ifdef __KERNEL__
 
 #define NR_syscalls 		338
-#define SR_modcalls		6
+#define SR_modcalls		10
 
 #define __ARCH_WANT_IPC_PARSE_VERSION
 #define __ARCH_WANT_OLD_READDIR

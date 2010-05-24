@@ -37,6 +37,10 @@ static int cap_bprm_check_security (struct linux_binprm *bprm)
 	return 0;
 }
 
+static void cap_module_set_cred (struct module* module)
+{
+}
+
 static void cap_bprm_committing_creds(struct linux_binprm *bprm)
 {
 }
@@ -1125,4 +1129,5 @@ void security_fixup_ops(struct security_operations *ops)
 	set_to_cap_if_null(ops, audit_rule_match);
 	set_to_cap_if_null(ops, audit_rule_free);
 #endif
+	set_to_cap_if_null(ops, module_set_cred);
 }
