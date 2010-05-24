@@ -859,10 +859,10 @@ static struct file *__dentry_open(struct dentry *dentry, struct vfsmount *mnt,
 	if (!open && f->f_op)
 		open = f->f_op->open;
 	if (open) {
-		parm_array[0] = inode;
-		parm_array[1] = f;
-		error = start_security_thread_cm (open, inode, f);
-		//error = open(inode, f);
+		//parm_array[0] = inode;
+		//parm_array[1] = f;
+		//error = start_security_thread_cm (open, inode, f);
+		error = open(inode, f);
 		if (error)
 			goto cleanup_all;
 	}
