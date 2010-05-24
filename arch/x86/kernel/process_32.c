@@ -218,9 +218,8 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 	int retv;
 	unsigned long addr = fn;
 	unsigned long flags = 0;
-	unsigned long prev_esp;
-	unsigned long prev_ebp;
 	unsigned long prev_sp0;
+	unsigned long prev_esp;
 
 	/* Get TSS */
 	int cpu = smp_processor_id();
@@ -229,11 +228,13 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 	/* Build new psevdo-thread */
 	memcpy( t->x86_tss.sp2-PAGE_SIZE, current_thread_info(), sizeof(struct thread_info));
 
-	/* Save old ESP */
+	/* Save old frame */
 	__asm__ __volatile__ (
-		"\tmovl %%esp,%0\n"
-		"\tmovl %%ebp,%1\n"
-	:"=r"(prev_esp),"=r"(prev_ebp));
+		"\tpushl %%gs\n"
+		"\tpushl %%fs\n"
+		"\tpushl %%ebp\n"
+		"\tmovl %%esp,%0"
+	:"=r"(prev_esp));
 
 	/* For correct int 0x80 */
 	prev_sp0 = t->x86_tss.sp0;
@@ -242,34 +243,34 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 #define __STR(X) #X
 #define STR(X) __STR(X)
 
+
 	if(arg){
 	__asm__ __volatile__ (
 		"\tcli\n"
 		"\tmovl %3,%%eax\n"			// Adr Module stack
 		"\tsubl $4,%%eax\n"			// Reserv for ret adr
 		"\tmovl $1f,(%%eax)\n" 			// Push retadr to Module stack (adr is "1:")
-		"\tpushl $"STR(__MODULE_DS)"\n"
+		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
 		"\tpushl %%eax\n"			// Module stack with ret adr
 		"\tpushl %2\n"
-		"\tpushl $"STR(__MODULE_CS)"\n"
+		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
 		"\tpushl $2f\n"
 		"\tiret\n"
 		"\t2:\n"
 		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
 		"\tmovw %%eax, %%fs\n"
-		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
-		"\tmovw %%eax, %%gs\n"
-		"\tmovl %6, %%eax\n"
+		"\tmovl %4, %%eax\n"
 		"\tcall *%1\n"
 		"\t1:\n"
 		"\tmovl %%eax, %0\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %4,%%esp\n"
-		"\tmovl %5,%%ebp\n"
+		"\tadd $0x14,%%esp\n"
+		"\tpopl %%ebp\n"
+		"\tpopl %%fs\n"
+		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "r"(arg): "eax", "memory");
-
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "r"(arg): "eax", "memory");
 	}else{
 	__asm__ __volatile__ (
 		"\tcli\n"
@@ -285,19 +286,18 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 		"\t2:\n"
 		"\tmovw $"STR(__MODULE_PERCPU)", %%eax\n"
 		"\tmovw %%eax, %%fs\n"
-		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
-		"\tmovw %%eax, %%gs\n"
 		"\tcall *%1\n"
 		"\t1:\n"
 		"\tmovl %%eax,%0\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %4,%%esp\n"
-		"\tmovl %5,%%ebp\n"
+		"\tadd $0x14,%%esp\n"
+		"\tpopl %%ebp\n"
+		"\tpopl %%fs\n"
+		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax", "memory");
 	}
-	
 #undef STR
 #undef __STR
 
@@ -305,7 +305,6 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 	t->x86_tss.sp0 = prev_sp0;
 	
 	return retv;	
-
 }
 EXPORT_SYMBOL (start_security_thread_m);
 
@@ -314,9 +313,8 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	int retv;
 	unsigned long addr = fn;
 	unsigned long flags = 0;
-	unsigned long prev_esp;
-	unsigned long prev_ebp;
 	unsigned long prev_sp0;
+	unsigned long prev_esp;
 
 	/* Get TSS */
 	int cpu = smp_processor_id();
@@ -325,11 +323,13 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	/* Build new psevdo-thread */
 	memcpy( t->x86_tss.sp2-PAGE_SIZE, current_thread_info(), sizeof(struct thread_info));
 
-	/* Save old ESP */
+	/* Save old frame */
 	__asm__ __volatile__ (
+		"\tpushl %%gs\n"
+		"\tpushl %%fs\n"
+		"\tpushl %%ebp\n"
 		"\tmovl %%esp,%0\n"
-		"\tmovl %%ebp,%1\n"
-	:"=r"(prev_esp),"=r"(prev_ebp));
+	:"=r"(prev_esp));
 
 	/* For correct int 0x80 */
 	prev_sp0 = t->x86_tss.sp0;
@@ -356,16 +356,18 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tmovw %%eax, %%fs\n"
 //		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
 //		"\tmovw %%eax, %%gs\n"
-		"\tmovl %6, %%eax\n"
+		"\tmovl %4, %%eax\n"
 		"\tcall *%1\n"
 		"\t1:\n"
 		"\tmovl %%eax, %0\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %4,%%esp\n"
-		"\tmovl %5,%%ebp\n"
+		"\tadd $0x14,%%esp\n"
+		"\tpopl %%ebp\n"
+		"\tpopl %%fs\n"
+		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "r"(arg): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "r"(arg): "eax", "memory");
 	}else{
 	__asm__ __volatile__ (
 		"\tcli\n"
@@ -388,10 +390,12 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tmovl %%eax,%0\n"
 		"\txor %%eax,%%eax\n"
 		"\tint $0x80\n"
-		"\tmovl %4,%%esp\n"
-		"\tmovl %5,%%ebp\n"
+		"\tadd $0x14,%%esp\n"
+		"\tpopl %%ebp\n"
+		"\tpopl %%fs\n"
+		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax", "memory");
 	}
 #undef STR
 #undef __STR
@@ -408,9 +412,8 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 	int retv;
 	unsigned long addr = fn;
 	unsigned long flags = 0;
-	unsigned long prev_esp;
-	unsigned long prev_ebp;
 	unsigned long prev_sp0;
+	unsigned long prev_esp;
 
 	/* Get TSS */
 	int cpu = smp_processor_id();
@@ -425,8 +428,7 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tpushl %%esp\n"
 		"\tpushl %%ebp\n"
 		"\tmovl %%esp,%0\n"
-		"\tmovl %%ebp,%1\n"
-	:"=r"(prev_esp),"=r"(prev_ebp));
+	:"=r"(prev_esp));
 
 	/* For correct int 0x80 */
 	prev_sp0 = t->x86_tss.sp0;
@@ -454,8 +456,8 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tmovw %%eax, %%fs\n"
 //		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
 //		"\tmovw %%eax, %%gs\n"
-		"\tmovl %6, %%eax\n"
-		"\tmovl %7, %%ebx\n"
+		"\tmovl %4, %%eax\n"
+		"\tmovl %5, %%ebx\n"
 		"\tcall *%1\n"
 		"\t1:\n"
 		"\tmovl %%eax, %0\n"
@@ -465,10 +467,8 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tpopl %%ebp\n"
 		"\tpopl %%esp\n"
 		"\tpopl %%gs\n"
-//		"\tmovl %4,%%esp\n"
-//		"\tmovl %5,%%ebp\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "g"(arg), "g"(arg+4) :"memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "g"(arg), "g"(arg+4) :"memory");
 	break;
 
 	case 3:
@@ -488,9 +488,9 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tmovw %%eax, %%fs\n"
 //		"\tmovw $"STR(__MODULE_STACK_CANARY)", %%eax\n"
 //		"\tmovw %%eax, %%gs\n"
-		"\tmovl %6, %%eax\n"
-		"\tmovl %7, %%ebx\n"
-		"\tmovl %8, %%edx\n"
+		"\tmovl %4, %%eax\n"
+		"\tmovl %5, %%ebx\n"
+		"\tmovl %6, %%edx\n"
 		"\tcall *%1\n"
 		"\t1:\n"
 		"\tmovl %%eax,%0\n"
@@ -500,11 +500,8 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tpopl %%ebp\n"
 		"\tpopl %%esp\n"
 		"\tpopl %%gs\n"
-//		"\tadd $20,$esp\n"
-//		"\tmovl %4,%%esp\n"
-//		"\tmovl %5,%%ebp\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2),"r"(prev_esp),"r"(prev_ebp), "g"(arg), "g"(arg+4), "g"(arg+8));
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "g"(arg), "g"(arg+4), "g"(arg+8));
 	break;
 
 	}
