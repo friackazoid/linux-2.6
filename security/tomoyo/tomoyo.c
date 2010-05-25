@@ -13,7 +13,7 @@
 #include "common.h"
 #include "tomoyo.h"
 #include "realpath.h"
-#include "linux/module.h"
+#include "module.h"
 
 static int tomoyo_cred_alloc_blank(struct cred *new, gfp_t gfp)
 {
