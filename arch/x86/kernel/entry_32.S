@@ -1,4 +1,4 @@
-/*
+/**
  *
  *  Copyright (C) 1991, 1992  Linus Torvalds
  */
@@ -262,7 +262,7 @@
 	popl %esi
 	popl %edi
 	popl %ebp
-	popl %eax
+#	popl %eax
 	addl $0x4,%esp
 	popl %ds
 	popl %es
