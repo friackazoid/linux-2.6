@@ -270,7 +270,7 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 		"\tpopl %%fs\n"
 		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "r"(arg): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "r"(arg): "eax");
 	}else{
 	__asm__ __volatile__ (
 		"\tcli\n"
@@ -296,10 +296,13 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 		"\tpopl %%fs\n"
 		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax");
 	}
 #undef STR
 #undef __STR
+
+	cpu = smp_processor_id();
+	t = &per_cpu(init_tss, cpu);
 
 	/* Return correct TSS */
 	t->x86_tss.sp0 = prev_sp0;
@@ -313,7 +316,6 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	int retv;
 	unsigned long addr = fn;
 	unsigned long flags = 0;
-	unsigned long prev_sp0;
 	unsigned long prev_esp;
 
 	/* Get TSS */
@@ -322,17 +324,19 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 
 	/* Build new psevdo-thread */
 	memcpy( t->x86_tss.sp2-PAGE_SIZE, current_thread_info(), sizeof(struct thread_info));
+	
 
 	/* Save old frame */
 	__asm__ __volatile__ (
+		"\tpushl %1\n"
 		"\tpushl %%gs\n"
 		"\tpushl %%fs\n"
 		"\tpushl %%ebp\n"
 		"\tmovl %%esp,%0\n"
-	:"=r"(prev_esp));
+	:"=r"(prev_esp):"r"(t->x86_tss.sp0));
 
 	/* For correct int 0x80 */
-	prev_sp0 = t->x86_tss.sp0;
+	//prev_sp0 = t->x86_tss.sp0;
 	t->x86_tss.sp0 = prev_esp-4; // fix for eax
 
 #define __STR(X) #X
@@ -367,7 +371,7 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tpopl %%fs\n"
 		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "r"(arg): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "r"(arg): "eax");
 	}else{
 	__asm__ __volatile__ (
 		"\tcli\n"
@@ -395,13 +399,19 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 		"\tpopl %%fs\n"
 		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax", "memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2): "eax");
 	}
 #undef STR
 #undef __STR
 
+	cpu = smp_processor_id();
+	t = &per_cpu(init_tss, cpu);
+
 	/* Return correct TSS */
-	t->x86_tss.sp0 = prev_sp0;
+	//t->x86_tss.sp0 = prev_sp0;
+	__asm__ __volatile__ (
+		"\tpopl %0\n"
+	:"=r"(t->x86_tss.sp0) );
 	
 	return retv;	
 }
@@ -412,7 +422,6 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 	int retv;
 	unsigned long addr = fn;
 	unsigned long flags = 0;
-	unsigned long prev_sp0;
 	unsigned long prev_esp;
 
 	/* Get TSS */
@@ -424,14 +433,15 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 
 	/* Save old ESP */
 	__asm__ __volatile__ (
+		"\tpushl %0\n"
 		"\tpushl %%gs\n"
 		"\tpushl %%esp\n"
 		"\tpushl %%ebp\n"
 		"\tmovl %%esp,%0\n"
-	:"=r"(prev_esp));
+	:"=r"(prev_esp):"r"(t->x86_tss.sp0));
 
 	/* For correct int 0x80 */
-	prev_sp0 = t->x86_tss.sp0;
+	//prev_sp0 = t->x86_tss.sp0;
 	t->x86_tss.sp0 = prev_esp-4; // fix for eax
 
 #define __STR(X) #X
@@ -468,7 +478,7 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tpopl %%esp\n"
 		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "g"(arg), "g"(arg+4) :"memory");
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "g"(arg), "g"(arg+4) :"eax","ebx");
 	break;
 
 	case 3:
@@ -501,7 +511,7 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tpopl %%esp\n"
 		"\tpopl %%gs\n"
 		"\tsti\n"
-	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "g"(arg), "g"(arg+4), "g"(arg+8));
+	:"=r"(retv):"r"(addr), "g"(flags|X86_EFLAGS_IF|X86_EFLAGS_SF|X86_EFLAGS_PF),"r"(t->x86_tss.sp2), "g"(arg), "g"(arg+4), "g"(arg+8):"eax","ebx","edx");
 	break;
 
 	}
@@ -513,7 +523,11 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 	t = &per_cpu(init_tss, cpu);
 
 	/* Return correct TSS */
-	t->x86_tss.sp0 = prev_sp0;
+	//t->x86_tss.sp0 = prev_sp0;
+	__asm__ __volatile__ (
+		"\tpopl %0\n"
+	:"=r"(t->x86_tss.sp0) );
+
 	
 	return retv;	
 }
