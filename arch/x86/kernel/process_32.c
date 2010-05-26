@@ -250,10 +250,10 @@ int start_security_thread_m (int (*fn) (void*), void *arg)
 		"\tmovl %3,%%eax\n"			// Adr Module stack
 		"\tsubl $4,%%eax\n"			// Reserv for ret adr
 		"\tmovl $1f,(%%eax)\n" 			// Push retadr to Module stack (adr is "1:")
-		"\tpushl $"STR(__MASTER_CONTROL_DS)"\n"
+		"\tpushl $"STR(__MODULE_DS)"\n"
 		"\tpushl %%eax\n"			// Module stack with ret adr
 		"\tpushl %2\n"
-		"\tpushl $"STR(__MASTER_CONTROL_CS)"\n"
+		"\tpushl $"STR(__MODULE_CS)"\n"
 		"\tpushl $2f\n"
 		"\tiret\n"
 		"\t2:\n"
