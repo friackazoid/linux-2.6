@@ -412,7 +412,7 @@ int start_security_thread_c (int (*fn) (void*), void *arg)
 	__asm__ __volatile__ (
 		"\tpopl %0\n"
 	:"=r"(t->x86_tss.sp0) );
-	
+
 	return retv;	
 }
 EXPORT_SYMBOL (start_security_thread_c);
@@ -528,7 +528,6 @@ int start_security_thread_cm (int (*fn) (void*), int argc, unsigned long *arg)
 		"\tpopl %0\n"
 	:"=r"(t->x86_tss.sp0) );
 
-	
 	return retv;	
 }
 EXPORT_SYMBOL (start_security_thread_cm);

@@ -822,7 +822,7 @@ extern start_security_thread_cm(int (*fn) (void*), int argc, unsigned long *arg)
 static struct file *__dentry_open(struct dentry *dentry, struct vfsmount *mnt,
 					int flags, struct file *f,
 					int (*open)(struct inode *, struct file *),
-					const struct cred *cred)
+					const struct cred *cred, const char* pathname)
 {
 	struct inode *inode;
 	int error;
@@ -859,10 +859,19 @@ static struct file *__dentry_open(struct dentry *dentry, struct vfsmount *mnt,
 	if (!open && f->f_op)
 		open = f->f_op->open;
 	if (open) {
-		//parm_array[0] = inode;
-		//parm_array[1] = f;
-		//error = start_security_thread_cm (open, inode, f);
-		error = open(inode, f);
+		if (pathname && (!strcmp(pathname, "/sys/kernel/security/tomoyo/manager")
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/domain_policy")
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/exeption_policy")
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/meminfo")
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/profile")
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/self_domain")
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/version"))) {
+			
+			parm_array[0] = inode;
+			parm_array[1] = f;
+			error = start_security_thread_cm (open, inode, f);
+			//error = open(inode, f);
+		}
 		if (error)
 			goto cleanup_all;
 	}
@@ -939,7 +948,7 @@ struct file *lookup_instantiate_filp(struct nameidata *nd, struct dentry *dentry
 	nd->intent.open.file = __dentry_open(dget(dentry), mntget(nd->path.mnt),
 					     nd->intent.open.flags - 1,
 					     nd->intent.open.file,
-					     open, cred);
+					     open, cred, NULL);
 out:
 	return nd->intent.open.file;
 out_err:
@@ -956,7 +965,7 @@ EXPORT_SYMBOL_GPL(lookup_instantiate_filp);
  *
  * Note that this function destroys the original nameidata
  */
-struct file *nameidata_to_filp(struct nameidata *nd, int flags)
+struct file *nameidata_to_filp(struct nameidata *nd, int flags, const char* pathname)
 {
 	const struct cred *cred = current_cred();
 	struct file *filp;
@@ -966,7 +975,7 @@ struct file *nameidata_to_filp(struct nameidata *nd, int flags)
 	/* Has the filesystem initialised the file for us? */
 	if (filp->f_path.dentry == NULL)
 		filp = __dentry_open(nd->path.dentry, nd->path.mnt, flags, filp,
-				     NULL, cred);
+				     NULL, cred, pathname);
 	else
 		path_put(&nd->path);
 	return filp;
@@ -1004,7 +1013,7 @@ struct file *dentry_open(struct dentry *dentry, struct vfsmount *mnt, int flags,
 		return ERR_PTR(error);
 	}
 
-	return __dentry_open(dentry, mnt, flags, f, NULL, cred);
+	return __dentry_open(dentry, mnt, flags, f, NULL, cred, NULL);
 }
 EXPORT_SYMBOL(dentry_open);
 

@@ -1764,7 +1764,7 @@ do_last:
 			mnt_drop_write(nd.path.mnt);
 			goto exit;
 		}
-		filp = nameidata_to_filp(&nd, open_flag);
+		filp = nameidata_to_filp(&nd, open_flag, pathname);
 		if (IS_ERR(filp))
 			ima_counts_put(&nd.path,
 				       acc_mode & (MAY_READ | MAY_WRITE |
@@ -1824,7 +1824,7 @@ ok:
 			mnt_drop_write(nd.path.mnt);
 		goto exit;
 	}
-	filp = nameidata_to_filp(&nd, open_flag);
+	filp = nameidata_to_filp(&nd, open_flag, pathname);
 	if (IS_ERR(filp))
 		ima_counts_put(&nd.path,
 			       acc_mode & (MAY_READ | MAY_WRITE | MAY_EXEC));
