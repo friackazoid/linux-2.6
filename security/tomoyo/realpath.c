@@ -138,7 +138,7 @@ int tomoyo_realpath_from_path2(struct path *path, char *newname,
 			}
 		}
 	}
-	if (error)
+	//if (error)
 		//printk(KERN_WARNING "tomoyo_realpath: Pathname too long.\n");
 	return error;
 }
