@@ -1406,6 +1406,26 @@ struct input_dev *input_allocate_device(void)
 	return dev;
 }
 EXPORT_SYMBOL(input_allocate_device);
+struct input_dev *modinput_allocate_device(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modinput_allocate_device)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinput_allocate_device);
+SYSCALL_DEFINE0(modinput_allocate_device, void)
+{
+	return (long) input_allocate_device();
+}
 
 /**
  * input_free_device - free memory occupied by input_dev structure
