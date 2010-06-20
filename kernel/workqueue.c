@@ -33,6 +33,7 @@
 #include <linux/kallsyms.h>
 #include <linux/debug_locks.h>
 #include <linux/lockdep.h>
+#include <linux/syscalls.h>
 #define CREATE_TRACE_POINTS
 #include <trace/events/workqueue.h>
 
@@ -735,6 +736,26 @@ int schedule_work(struct work_struct *work)
 	return queue_work(keventd_wq, work);
 }
 EXPORT_SYMBOL(schedule_work);
+int modschedule_work(struct work_struct *work)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modschedule_work)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(work):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR	
+}
+EXPORT_SYMBOL(modschedule_work);
+SYSCALL_DEFINE1(modschedule_work, struct work_struct, *work)
+{
+	return schedule_work(work);
+}
 
 /*
  * schedule_work_on - put work task on a specific cpu
@@ -850,6 +871,25 @@ void flush_scheduled_work(void)
 	flush_workqueue(keventd_wq);
 }
 EXPORT_SYMBOL(flush_scheduled_work);
+void modflush_scheduled_work(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modflush_scheduled_work)", %%eax\n"
+		"\tint $0x80\n"
+		:::"eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modflush_scheduled_work);
+SYSCALL_DEFINE0(modflush_scheduled_work)
+{
+	flush_scheduled_work();
+	return;
+}
 
 /**
  * execute_in_process_context - reliably execute the routine with user context

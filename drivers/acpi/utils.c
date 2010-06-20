@@ -29,6 +29,7 @@
 #include <linux/types.h>
 #include <acpi/acpi_bus.h>
 #include <acpi/acpi_drivers.h>
+#include <linux/syscalls.h>
 
 #include "internal.h"
 
@@ -288,6 +289,35 @@ acpi_evaluate_integer(acpi_handle handle,
 }
 
 EXPORT_SYMBOL(acpi_evaluate_integer);
+
+acpi_status
+modacpi_evaluate_integer(acpi_handle handle,
+		      acpi_string pathname,
+		      struct acpi_object_list *arguments, unsigned long long *data)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_modacpi_evaluate_integer)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(handle), "m"(pathname), "m"(arguments), "m"(data) :"ebx", "ecx", "edx", "esi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modacpi_evaluate_integer);
+SYSCALL_DEFINE4(modacpi_evaluate_integer, acpi_handle, handle,
+		      acpi_string, pathname,
+		      struct acpi_object_list, *arguments, unsigned long long, *data)
+{
+	return acpi_evaluate_integer(handle, pathname, arguments, data);
+}
 
 #if 0
 acpi_status

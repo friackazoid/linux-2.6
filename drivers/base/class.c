@@ -19,6 +19,7 @@
 #include <linux/slab.h>
 #include <linux/genhd.h>
 #include <linux/mutex.h>
+#include <linux/syscalls.h>
 #include "base.h"
 
 #define to_class_attr(_attr) container_of(_attr, struct class_attribute, attr)
@@ -247,7 +248,30 @@ error:
 	return ERR_PTR(retval);
 }
 EXPORT_SYMBOL_GPL(__class_create);
-
+struct class *mod__class_create(struct module *owner, const char *name,
+			     struct lock_class_key *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_mod__class_create)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(owner), "m"(name), "m"(key) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(mod__class_create);
+SYSCALL_DEFINE3(mod__class_create, struct module, *owner, const char, *name,
+			     struct lock_class_key, *key)
+{
+	return __class_create(owner, name, key);
+}
 /**
  * class_destroy - destroys a struct class structure
  * @cls: pointer to the struct class that is to be destroyed
@@ -261,6 +285,26 @@ void class_destroy(struct class *cls)
 		return;
 
 	class_unregister(cls);
+}
+void modclass_destroy(struct class *cls)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modclass_destroy)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(cls) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modclass_destroy);
+SYSCALL_DEFINE1(modclass_destroy, struct class, *cls)
+{
+	class_destroy(cls);
+	return;
 }
 
 #ifdef CONFIG_SYSFS_DEPRECATED

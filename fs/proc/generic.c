@@ -21,6 +21,7 @@
 #include <linux/spinlock.h>
 #include <linux/completion.h>
 #include <asm/uaccess.h>
+#include <linux/syscalls.h>
 
 #include "internal.h"
 
@@ -700,6 +701,29 @@ struct proc_dir_entry *proc_mkdir(const char *name,
 {
 	return proc_mkdir_mode(name, S_IRUGO | S_IXUGO, parent);
 }
+struct proc_dir_entry *modproc_mkdir(const char *name,
+		struct proc_dir_entry *parent)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modproc_mkdir)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(name), "m"(parent) :"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modproc_mkdir);
+SYSCALL_DEFINE2(modproc_mkdir, const char, *name,
+		struct proc_dir_entry, *parent)
+{
+	return proc_mkdir(name, parent);
+}
 
 struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
 					 struct proc_dir_entry *parent)
@@ -761,6 +785,36 @@ out_free:
 	kfree(pde);
 out:
 	return NULL;
+}
+struct proc_dir_entry *modproc_create_data(const char *name, mode_t mode,
+					struct proc_dir_entry *parent,
+					const struct file_operations *proc_fops,
+					void *data)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl %5, %%edi\n"
+		"\tmovl $"STR(__SR_modproc_create_data)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(name), "m"(mode), "m"(parent), "m"(proc_fops), "m"(data) :"ebx","ecx","edx","esi","edi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modproc_create_data);
+SYSCALL_DEFINE5(modproc_create_data, const char*, name, mode_t, mode,
+					struct proc_dir_entry*, parent,
+					const struct file_operations*, proc_fops,
+					void*, data)
+{
+	return modproc_create_data(name, mode,parent,proc_fops,data);
 }
 
 void free_proc_entry(struct proc_dir_entry *de)
@@ -847,4 +901,25 @@ continue_removing:
 			de->parent->name, de->name, de->subdir->name);
 	if (atomic_dec_and_test(&de->count))
 		free_proc_entry(de);
+}
+void modremove_proc_entry(const char *name, struct proc_dir_entry *parent)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modremove_proc_entry)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(name), "m"(parent) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modremove_proc_entry);
+SYSCALL_DEFINE2(modremove_proc_entry, const char, *name, struct proc_dir_entry, *parent)
+{
+	remove_proc_entry(name, parent);
+	return;
 }

@@ -59,6 +59,30 @@ __mutex_init(struct mutex *lock, const char *name, struct lock_class_key *key)
 
 EXPORT_SYMBOL(__mutex_init);
 
+void
+mod__mutex_init(struct mutex *lock, const char *name, struct lock_class_key *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl $"STR(__SR_mod__mutex_init)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(lock), "m"(name), "m"(key) :"ebx", "ecx", "edx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__mutex_init);
+SYSCALL_DEFINE3(mod__mutex_init, struct mutex, *lock, const char, *name, struct lock_class_key, *key)
+{
+	__mutex_init(lock, name, key);
+	return;
+}
+
 SYSCALL_DEFINE1(mod_mutex_init, struct mutex*, lock)
 {
 	mutex_init (lock);
@@ -108,6 +132,22 @@ void __sched mutex_lock(struct mutex *lock)
 }
 
 EXPORT_SYMBOL(mutex_lock);
+
+void __sched modmutex_lock(struct mutex *lock)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_mutex_lock)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(lock) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmutex_lock);
 
 SYSCALL_DEFINE1(mod_mutex_lock, struct mutex*, lock)
 {
@@ -402,6 +442,27 @@ int __sched mutex_lock_interruptible(struct mutex *lock)
 }
 
 EXPORT_SYMBOL(mutex_lock_interruptible);
+
+int __sched modmutex_lock_interruptible(struct mutex *lock)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modmutex_lock_interruptible)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(lock):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmutex_lock_interruptible);
+SYSCALL_DEFINE1(modmutex_lock_interruptible, struct mutex, *lock)
+{
+	return mutex_lock_interruptible(lock);
+}
 
 int __sched mutex_lock_killable(struct mutex *lock)
 {

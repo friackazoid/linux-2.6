@@ -35,6 +35,8 @@
 #include <linux/string.h>
 #include <linux/idr.h>
 
+#include <linux/syscalls.h>
+
 static struct kmem_cache *idr_layer_cache;
 
 static struct idr_layer *get_from_free_list(struct idr *idp)
@@ -129,6 +131,27 @@ int idr_pre_get(struct idr *idp, gfp_t gfp_mask)
 	return 1;
 }
 EXPORT_SYMBOL(idr_pre_get);
+int modidr_pre_get(struct idr *idp, gfp_t gfp_mask)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modidr_pre_get)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(idp), "m"(gfp_mask):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modidr_pre_get);
+SYSCALL_DEFINE2(modidr_pre_get, struct idr, *idp, gfp_t, gfp_mask)
+{
+	return idr_pre_get(idp, gfp_mask);
+}
 
 static int sub_alloc(struct idr *idp, int *starting_id, struct idr_layer **pa)
 {
@@ -341,6 +364,29 @@ int idr_get_new(struct idr *idp, void *ptr, int *id)
 }
 EXPORT_SYMBOL(idr_get_new);
 
+int modidr_get_new(struct idr *idp, void *ptr, int *id)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modidr_get_new)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(idp), "m"(ptr), "m"(id) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modidr_get_new);
+SYSCALL_DEFINE3(modidr_get_new, struct idr, *idp, void, *ptr, int, *id)
+{
+	return idr_get_new(idp, ptr, id);
+}
+
 static void idr_remove_warning(int id)
 {
 	printk(KERN_WARNING
@@ -426,6 +472,27 @@ void idr_remove(struct idr *idp, int id)
 	return;
 }
 EXPORT_SYMBOL(idr_remove);
+void modidr_remove(struct idr *idp, int id)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modidr_remove)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(idp), "m"(id) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modidr_remove);
+SYSCALL_DEFINE2(modidr_remove, struct idr, *idp, int, id)
+{
+	modidr_remove(idp, id);
+	return;
+}
 
 /**
  * idr_remove_all - remove all ids from the given idr tree

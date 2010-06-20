@@ -575,6 +575,32 @@ void init_timer_key(struct timer_list *timer,
 	__init_timer(timer, name, key);
 }
 EXPORT_SYMBOL(init_timer_key);
+void modinit_timer_key(struct timer_list *timer,
+		    const char *name,
+		    struct lock_class_key *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl $"STR(__SR_modinit_timer_key)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(timer), "m"(name), "m"(key) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinit_timer_key);
+SYSCALL_DEFINE3(modinit_timer_key, struct timer_list, *timer,
+		    const char, *name,
+		    struct lock_class_key, *key)
+{
+	init_timer_key(timer, name, key);
+	return;
+}
 
 void init_timer_deferrable_key(struct timer_list *timer,
 			       const char *name,
@@ -792,6 +818,26 @@ void add_timer(struct timer_list *timer)
 	mod_timer(timer, timer->expires);
 }
 EXPORT_SYMBOL(add_timer);
+void modadd_timer(struct timer_list *timer)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modadd_timer)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(timer) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modadd_timer);
+SYSCALL_DEFINE1(modadd_timer, struct timer_list, *timer)
+{
+	add_timer(timer);
+	return;
+}
 
 /**
  * add_timer_on - start a timer on a particular CPU
@@ -933,6 +979,27 @@ int del_timer_sync(struct timer_list *timer)
 	}
 }
 EXPORT_SYMBOL(del_timer_sync);
+
+int moddel_timer_sync(struct timer_list *timer)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_moddel_timer_sync)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(timer):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddel_timer_sync);
+SYSCALL_DEFINE1(moddel_timer_sync, struct timer_list, *timer)
+{
+	return del_timer_sync(timer);
+}
 #endif
 
 static int cascade(struct tvec_base *base, struct tvec *tv, int index)

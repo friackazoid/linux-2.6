@@ -11,6 +11,8 @@
 
 #include <acpi/acpi_drivers.h>
 
+#include <linux/syscalls.h>
+
 #include "internal.h"
 
 #define _COMPONENT		ACPI_BUS_COMPONENT
@@ -610,6 +612,26 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
 }
 
 EXPORT_SYMBOL(acpi_bus_register_driver);
+int modacpi_bus_register_driver(struct acpi_driver *driver)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modacpi_bus_register_driver)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(driver):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modacpi_bus_register_driver);
+SYSCALL_DEFINE1(modacpi_bus_register_driver, struct acpi_driver, *driver)
+{
+	return acpi_bus_register_driver(driver);
+}
 
 /**
  * acpi_bus_unregister_driver - unregisters a driver with the APIC bus
@@ -622,8 +644,25 @@ void acpi_bus_unregister_driver(struct acpi_driver *driver)
 {
 	driver_unregister(&driver->drv);
 }
-
 EXPORT_SYMBOL(acpi_bus_unregister_driver);
+void modacpi_bus_unregister_driver(struct acpi_driver *driver)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modacpi_bus_unregister_driver)", %%eax\n"
+		"\tint $0x80\n"
+		::"r"(driver) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modacpi_bus_unregister_driver);
+SYSCALL_DEFINE1(modacpi_bus_unregister_driver, struct acpi_driver, *driver)
+{
+	acpi_bus_unregister_driver(driver);
+	return;
+}
 
 /* --------------------------------------------------------------------------
                                  Device Enumeration
@@ -995,6 +1034,27 @@ char *acpi_device_hid(struct acpi_device *device)
 	return hid->id;
 }
 EXPORT_SYMBOL(acpi_device_hid);
+char *modacpi_device_hid(struct acpi_device *device)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modacpi_device_hid)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(device):"ebx","eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modacpi_device_hid);
+SYSCALL_DEFINE1(modacpi_device_hid, struct acpi_device*, device)
+{
+	return acpi_device_hid(device);
+}
+
 
 static void acpi_add_id(struct acpi_device *device, const char *dev_id)
 {

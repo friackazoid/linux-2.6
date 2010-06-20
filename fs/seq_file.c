@@ -13,6 +13,8 @@
 #include <asm/uaccess.h>
 #include <asm/page.h>
 
+#include <linux/syscalls.h>
+
 /**
  *	seq_open -	initialize sequential file
  *	@file: file we initialize
@@ -269,6 +271,29 @@ Efault:
 	goto Done;
 }
 EXPORT_SYMBOL(seq_read);
+ssize_t modseq_read(struct file *file, char __user *buf, size_t size, loff_t *ppos)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_modseq_read)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(file), "m"(buf), "m"(size), "m"(ppos) :"ebx", "ecx", "edx", "esi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modseq_read);
+SYSCALL_DEFINE4(modseq_read, struct file, *file, char __user, *buf, size_t, size, loff_t, *ppos)
+{
+	return seq_read(file, buf, size, ppos);
+}
 
 /**
  *	seq_lseek -	->llseek() method for sequential files.
@@ -314,6 +339,37 @@ loff_t seq_lseek(struct file *file, loff_t offset, int origin)
 }
 EXPORT_SYMBOL(seq_lseek);
 
+struct modseqlseek {
+	struct file *file;
+	loff_t offset;
+	int origin;
+	loff_t ret;
+};
+loff_t modseq_lseek(struct file *file, loff_t offset, int origin)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	struct modseqlseek msl;
+	msl.file = file;
+	msl.offset = offset;
+	msl.origin = origin;
+	struct modseqlseek *pmsl = &msl;
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modseq_lseek)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(pmsl):"ebx","eax");
+	return pmsl->ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modseq_lseek);
+SYSCALL_DEFINE1(modseq_lseek, struct modseqlseek*, pmsl)
+{
+	pmsl->ret = seq_lseek(pmsl->file, pmsl->offset, pmsl->origin);
+	return;
+	
+}
 /**
  *	seq_release -	free the structures associated with sequential file.
  *	@file: file in question
@@ -385,7 +441,26 @@ int seq_printf(struct seq_file *m, const char *f, ...)
 	return -1;
 }
 EXPORT_SYMBOL(seq_printf);
-
+int modseq_printf(struct seq_file *m, const char *f, ...)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modseq_printf)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modseq_printf);
+SYSCALL_DEFINE0(modseq_printf)
+{
+	printk("\n[42***] No modseq_printf");
+	return 0;
+}
 /**
  *	mangle_path -	mangle and copy path to buffer beginning
  *	@s: buffer start
@@ -569,6 +644,30 @@ int single_open(struct file *file, int (*show)(struct seq_file *, void *),
 }
 EXPORT_SYMBOL(single_open);
 
+typedef	int (single_open_show)(struct seq_file *, void *);
+int modsingle_open(struct file *file, single_open_show *show, void *data)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modsingle_open)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(file), "m"(show), "m"(data) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsingle_open);
+SYSCALL_DEFINE3(modsingle_open, struct file, *file, single_open_show*, show, void, *data)
+{
+	return single_open(file, show, data);
+}
+
 int single_release(struct inode *inode, struct file *file)
 {
 	const struct seq_operations *op = ((struct seq_file *)file->private_data)->op;
@@ -577,6 +676,27 @@ int single_release(struct inode *inode, struct file *file)
 	return res;
 }
 EXPORT_SYMBOL(single_release);
+int modsingle_release(struct inode *inode, struct file *file)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modsingle_release)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(inode), "m"(file):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsingle_release);
+SYSCALL_DEFINE2(modsingle_release, struct inode, *inode, struct, file *file)
+{
+	return single_release(inode, file);
+}
 
 int seq_release_private(struct inode *inode, struct file *file)
 {

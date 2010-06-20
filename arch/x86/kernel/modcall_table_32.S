@@ -16,34 +16,34 @@ ENTRY(mod_call_table)
 	.long sys_modacpi_enable_gpe
 	.long sys_modsnprintf
 	.long sys_modinput_unregister_device
-	.long sys_modkfree
+	.long sys_mod_kfree
 	.long sys_modseq_lseek
 	.long sys_modproc_create_data
 	.long sys_modblocking_notifier_chain_register
 	.long sys_modinput_free_device
 	.long sys_modblocking_notifier_call_chain
 	.long sys_modinput_register_device
-	.long sys_modacpi_root_dir
+	.long sys_mod_printk
 	.long sys_modkmem_cache_alloc
 	.long sys_modacpi_bus_generate_proc_event
-	.long sys_modprintk
+	.long sys_mod_printk
 	.long sys_modproc_mkdir
 	.long sys_modinput_event
-	.long sys_modstrcmp
+	.long sys_mod_printk
 	.long sys_modseq_read
 	.long sys_modsprintf
 	.long sys_modblocking_notifier_chain_unregister
 	.long sys_modacpi_bus_unregister_driver
 	.long sys_modremove_proc_entry
 	.long sys_modseq_printf
-	.long sys_mod__tracepoint_kmalloc
+	.long sys_mod_printk
 	.long sys_modsingle_release
 	.long sys_modacpi_set_gpe_type
 	.long sys_modacpi_evaluate_integer
 	.long sys_modsingle_open
-	.long sys_modkmalloc_caches
+	.long sys_mod_printk
 	.long sys_modacpi_bus_register_driver
-	.long sys_modmktime
+	.long sys_mod_printk
 	.long sys_modalloc_chrdev_region
 	.long sys_modidr_get_new
 	.long sys_mod__class_create
@@ -53,18 +53,18 @@ ENTRY(mod_call_table)
 	.long sys_modkill_fasync
 	.long sys_modclass_destroy
 	.long sys_modflush_scheduled_work
-	.long sys_modrtc_valid_tm
+	.long sys_mod_printk
 	.long sys_modadd_wait_queue
 	.long sys_mod__wake_up
 	.long sys_modget_device
-	.long sys_mod__per_cpu_offset
+	.long sys_mod_printk
 	.long sys_moddev_driver_string
-	.long sys_moddynamic_debug_enabled
+	.long sys_mod_printk
 	.long sys_modschedule
 	.long sys_modput_device
-	.long sys_mod__put_user_4
-	.long sys_modrtc_tm_to_time
-	.long sys_modpv_irq_ops
+	.long sys_mod_printk
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_modcapable
 	.long sys_modmodule_put
 	.long sys_modidr_pre_get
@@ -73,33 +73,33 @@ ENTRY(mod_call_table)
 	.long sys_modidr_remove
 	.long sys_modadd_timer
 	.long sys_mod_spin_unlock_irqrestore
-	.long sys_modmutex_lock
-	.long sys_modstrlcpy
+	.long sys_mod_mutex_lock
+	.long sys_mod_printk
 	.long sys_modfasync_helper
 	.long sys_modcopy_to_user
-	.long sys_mod__tracepoint_module_get
+	.long sys_mod_printk 
 	.long sys_mod_spin_lock_irq
 	.long sys_mod__mutex_init
 	.long sys_modmutex_lock_interruptible
 	.long sys_moddevice_register
 	.long sys_moddel_timer_sync
 	.long sys_moddefault_wake_function
-	.long sys_modper_cpu__cpu_number
+	.long sys_mod_printk
 	.long sys_mod__init_waitqueue_head
-	.long sys_modjiffies
+	.long sys_mod_printk
 	.long sys_mod_spin_lock_irqsave
 	.long sys_modunregister_chrdev_region
-	.long sys_modmutex_unlock
+	.long sys_mod_mutex_unlock
 	.long sys_modinit_timer_key
 	.long sys_modschedule_work
 	.long sys_modsimple_strtoul
-	.long sys_moddynamic_debug_enabled2
-	.long sys_modno_llseek
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_modremove_wait_queue
-	.long sys_modrtc_time_to_tm
-	.long sys_modrtc_month_days
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_modcdev_init
-	.long sys_modper_cpu__current_task
+	.long sys_mod_printk
 	.long sys_modcdev_del
 	.long sys_moddevice_remove_file
 	.long sys_modclass_find_device

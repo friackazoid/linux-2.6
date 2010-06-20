@@ -159,6 +159,12 @@ size_t strlcpy(char *dest, const char *src, size_t size)
 	return ret;
 }
 EXPORT_SYMBOL(strlcpy);
+size_t modstrlcpy(char *dest, const char *src, size_t size)
+{
+	return strlcpy(dest, src, size);
+}
+EXPORT_SYMBOL(modstrlcpy);
+
 #endif
 
 #ifndef __HAVE_ARCH_STRCAT

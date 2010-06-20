@@ -13,6 +13,7 @@
 
 #include <linux/module.h>
 #include <linux/rtc.h>
+#include <linux/syscalls.h>
 
 static const unsigned char rtc_days_in_month[] = {
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
@@ -35,6 +36,12 @@ int rtc_month_days(unsigned int month, unsigned int year)
 	return rtc_days_in_month[month] + (is_leap_year(year) && month == 1);
 }
 EXPORT_SYMBOL(rtc_month_days);
+
+int modrtc_month_days(unsigned int month, unsigned int year)
+{
+	return rtc_days_in_month[month] + (is_leap_year(year) && month == 1);
+}
+EXPORT_SYMBOL(modrtc_month_days);
 
 /*
  * The number of days since January 1. (0 to 365)
@@ -88,6 +95,12 @@ void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
 }
 EXPORT_SYMBOL(rtc_time_to_tm);
 
+void modrtc_time_to_tm(unsigned long time, struct rtc_time *tm)
+{
+	return rtc_time_to_tm(time, tm);
+}
+EXPORT_SYMBOL(modrtc_time_to_tm);
+
 /*
  * Does the rtc_time represent a valid date/time?
  */
@@ -105,6 +118,11 @@ int rtc_valid_tm(struct rtc_time *tm)
 	return 0;
 }
 EXPORT_SYMBOL(rtc_valid_tm);
+int modrtc_valid_tm(struct rtc_time *tm)
+{
+	return rtc_valid_tm(tm);
+}
+EXPORT_SYMBOL(modrtc_valid_tm);
 
 /*
  * Convert Gregorian date to seconds since 01-01-1970 00:00:00.
@@ -116,5 +134,10 @@ int rtc_tm_to_time(struct rtc_time *tm, unsigned long *time)
 	return 0;
 }
 EXPORT_SYMBOL(rtc_tm_to_time);
+int modrtc_tm_to_time(struct rtc_time *tm, unsigned long *time)
+{
+	return rtc_tm_to_time(tm, time);
+}
+EXPORT_SYMBOL(modrtc_tm_to_time);
 
 MODULE_LICENSE("GPL");

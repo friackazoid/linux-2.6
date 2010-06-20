@@ -39,6 +39,7 @@
 #include <acpi/acpi_bus.h>
 #include <acpi/acpi_drivers.h>
 #include <linux/dmi.h>
+#include <linux/syscalls.h>
 
 #include "internal.h"
 
@@ -48,6 +49,8 @@ ACPI_MODULE_NAME("bus");
 struct acpi_device *acpi_root;
 struct proc_dir_entry *acpi_root_dir;
 EXPORT_SYMBOL(acpi_root_dir);
+//struct proc_dir_entry *modacpi_root_dir = acpi_root_dir;
+//EXPORT_SYMBOL(modacpi_root_dir);
 
 #define STRUCT_TO_INT(s)	(*((int*)&s))
 
@@ -395,6 +398,28 @@ int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data)
 }
 
 EXPORT_SYMBOL(acpi_bus_generate_proc_event);
+int modacpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modacpi_bus_generate_proc_event)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(device), "m"(type), "m"(data) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modacpi_bus_generate_proc_event);
+SYSCALL_DEFINE3(modacpi_bus_generate_proc_event, struct acpi_device, *device, u8, type, int, data)
+{
+	return acpi_bus_generate_proc_event(device, type, data);
+}
 
 int acpi_bus_receive_event(struct acpi_bus_event *event)
 {

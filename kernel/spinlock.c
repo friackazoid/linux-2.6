@@ -20,6 +20,7 @@
 #include <linux/interrupt.h>
 #include <linux/debug_locks.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 
 /*
  * If lockdep is enabled then we use the non-preemption spin-ops
@@ -186,6 +187,26 @@ unsigned long __lockfunc _spin_lock_irqsave(spinlock_t *lock)
 	return __spin_lock_irqsave(lock);
 }
 EXPORT_SYMBOL(_spin_lock_irqsave);
+unsigned long __lockfunc mod_spin_lock_irqsave(spinlock_t *lock)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_spin_lock_irqsave)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(lock):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod_spin_lock_irqsave);
+SYSCALL_DEFINE1(mod_spin_lock_irqsave, spinlock_t, *lock)
+{
+	return _spin_lock_irqsave(lock);
+}
 #endif
 
 #ifndef CONFIG_INLINE_SPIN_LOCK_IRQ
@@ -194,6 +215,27 @@ void __lockfunc _spin_lock_irq(spinlock_t *lock)
 	__spin_lock_irq(lock);
 }
 EXPORT_SYMBOL(_spin_lock_irq);
+
+void __lockfunc mod_spin_lock_irq(spinlock_t *lock)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_spin_lock_irq)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(lock) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod_spin_lock_irq);
+SYSCALL_DEFINE1(mod_spin_lock_irq, spinlock_t, *lock)
+{
+	_spin_lock_irq(lock);
+	return;
+}
 #endif
 
 #ifndef CONFIG_INLINE_SPIN_LOCK_BH
@@ -298,6 +340,27 @@ void __lockfunc _spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags)
 	__spin_unlock_irqrestore(lock, flags);
 }
 EXPORT_SYMBOL(_spin_unlock_irqrestore);
+void __lockfunc mod_spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_mod_spin_unlock_irqrestore)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(lock), "m"(flags) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod_spin_unlock_irqrestore);
+SYSCALL_DEFINE2(mod_spin_unlock_irqrestore, spinlock_t, *lock, unsigned long, flags)
+{
+	_spin_unlock_irqrestore(lock, flags);
+	return;
+}
 #endif
 
 #ifndef CONFIG_INLINE_SPIN_UNLOCK_IRQ
