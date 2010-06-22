@@ -3578,6 +3578,25 @@ void *kmem_cache_alloc(struct kmem_cache *cachep, gfp_t flags)
 	return ret;
 }
 EXPORT_SYMBOL(kmem_cache_alloc);
+void *modkmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modkmem_cache_alloc)", %%eax\n"
+		"\tint $0x80\n"
+	::"r"(s), "r"(gfpflags) : "eax", "ebx","memory");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkmem_cache_alloc);
+SYSCALL_DEFINE2 (modkmem_cache_alloc, struct kmem_cache, *s, gfp_t, gfpflags)
+{
+	kmem_cache_alloc(s, gfpflags);
+	return;
+}
 
 #ifdef CONFIG_KMEMTRACE
 void *kmem_cache_alloc_notrace(struct kmem_cache *cachep, gfp_t flags)
@@ -3729,7 +3748,6 @@ void *__kmalloc(size_t size, gfp_t flags)
 }
 EXPORT_SYMBOL(__kmalloc);
 
-#include <linux/syscalls.h>
 SYSCALL_DEFINE2(mod_kzalloc, size_t, size, gfp_t, flags)
 {
 	unsigned long addr;
@@ -3801,7 +3819,19 @@ void kfree(const void *objp)
 	local_irq_restore(flags);
 }
 EXPORT_SYMBOL(kfree);
-
+void modkfree(const void *objp)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_kfree)", %%eax\n"
+		"\tint $0x80\n"
+	::"r"(objp) : "eax", "ebx","memory");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkfree);
 SYSCALL_DEFINE1(mod_kfree, const void*, objp)
 {
 	kfree (objp);

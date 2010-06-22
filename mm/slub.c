@@ -1755,6 +1755,25 @@ void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
 	return ret;
 }
 EXPORT_SYMBOL(kmem_cache_alloc);
+void *modkmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modkmem_cache_alloc)", %%eax\n"
+		"\tint $0x80\n"
+	::"r"(s), "r"(gfpflags) : "eax", "ebx","memory");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkmem_cache_alloc);
+SYSCALL_DEFINE2 (modkmem_cache_alloc, struct kmem_cache, *s, gfp_t, gfpflags)
+{
+	kmem_cache_alloc(s, gfpflags);
+	return;
+}
 
 #ifdef CONFIG_KMEMTRACE
 void *kmem_cache_alloc_notrace(struct kmem_cache *s, gfp_t gfpflags)
@@ -2976,7 +2995,19 @@ void kfree(const void *x)
 	slab_free(page->slab, page, object, _RET_IP_);
 }
 EXPORT_SYMBOL(kfree);
-
+void modkfree(const void *objp)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_kfree)", %%eax\n"
+		"\tint $0x80\n"
+	::"r"(objp) : "eax", "ebx","memory");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkfree);
 SYSCALL_DEFINE1 (mod_kfree, const void*, x)
 {
 	kfree (x);
@@ -4813,7 +4844,6 @@ static int __init slab_proc_init(void)
 }
 module_init(slab_proc_init);
 
-#include <linux/syscalls.h>
 SYSCALL_DEFINE2(mod_kzalloc, size_t, size, gfp_t, flags)
 {
 	unsigned long addr;

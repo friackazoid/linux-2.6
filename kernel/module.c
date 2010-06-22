@@ -960,6 +960,26 @@ void module_put(struct module *module)
 	}
 }
 EXPORT_SYMBOL(module_put);
+void modmodule_put(struct module *module)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modmodule_put)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(module) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmodule_put);
+SYSCALL_DEFINE1(modmodule_put, struct module, *module)
+{
+	module_put(module);
+	return;
+}
 
 #else /* !CONFIG_MODULE_UNLOAD */
 static inline void print_unload_info(struct seq_file *m, struct module *mod)
@@ -1614,6 +1634,7 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 	const struct kernel_symbol *ksym;
 
 	for (i = 1; i < n; i++) {
+		printk("[42***] - Symbol: %s - %0.8X\n", strtab + sym[i].st_name, sym[i].st_value);
 		switch (sym[i].st_shndx) {
 		case SHN_COMMON:
 			/* We compiled with -fno-common.  These are not
@@ -1633,8 +1654,10 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 		case SHN_UNDEF:
 			ksym = resolve_symbol(sechdrs, versindex,
 					      strtab + sym[i].st_name, mod);
+			printk("[42Tdbg] SHN_UNDEF_ALL: %s\n", strtab + sym[i].st_name);
 			/* Ok if resolved.  */
 			if (ksym) {
+				printk("[42Tdbg] SHN_UNDEF_KSYM: %s\n", strtab + sym[i].st_name);
 				sym[i].st_value = ksym->value;
 				break;
 			}

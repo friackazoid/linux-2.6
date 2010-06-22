@@ -314,3 +314,23 @@ int capable(int cap)
 	return 0;
 }
 EXPORT_SYMBOL(capable);
+int modcapable(int cap)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modcapable)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(cap):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcapable);
+SYSCALL_DEFINE1(modcapable, int, cap)
+{
+	return capable(cap);
+}

@@ -354,6 +354,14 @@ mktime(const unsigned int year0, const unsigned int mon0,
 }
 
 EXPORT_SYMBOL(mktime);
+unsigned long
+modmktime(const unsigned int year0, const unsigned int mon0,
+       const unsigned int day, const unsigned int hour,
+       const unsigned int min, const unsigned int sec)
+{
+	return mktime(year0, mon0, day, hour, min, sec);
+}
+EXPORT_SYMBOL(modmktime);
 
 /**
  * set_normalized_timespec - set timespec sec and nsec parts and normalize

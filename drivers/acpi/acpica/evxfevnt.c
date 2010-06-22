@@ -41,6 +41,7 @@
  * POSSIBILITY OF SUCH DAMAGES.
  */
 
+#include <linux/syscalls.h>
 #include <acpi/acpi.h>
 #include "accommon.h"
 #include "acevents.h"
@@ -240,6 +241,28 @@ acpi_status acpi_set_gpe_type(acpi_handle gpe_device, u32 gpe_number, u8 type)
 }
 
 ACPI_EXPORT_SYMBOL(acpi_set_gpe_type)
+acpi_status modacpi_set_gpe_type(acpi_handle gpe_device, u32 gpe_number, u8 type)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modacpi_set_gpe_type)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(gpe_device), "m"(gpe_number), "m"(type) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+ACPI_EXPORT_SYMBOL(modacpi_set_gpe_type)
+SYSCALL_DEFINE3(modacpi_set_gpe_type, acpi_handle, gpe_device, u32, gpe_number, u8, type)
+{
+	return acpi_set_gpe_type(gpe_device, gpe_number, type);
+}
 
 /*******************************************************************************
  *
@@ -283,6 +306,27 @@ acpi_status acpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
 }
 
 ACPI_EXPORT_SYMBOL(acpi_enable_gpe)
+acpi_status modacpi_enable_gpe(acpi_handle gpe_device, u32 gpe_number)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modacpi_enable_gpe)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(gpe_device), "m"(gpe_number):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+ACPI_EXPORT_SYMBOL(modacpi_enable_gpe)
+SYSCALL_DEFINE2(modacpi_enable_gpe, acpi_handle, gpe_device, u32, gpe_number)
+{
+	return modacpi_enable_gpe(gpe_device, gpe_number);
+}
 
 /*******************************************************************************
  *

@@ -31,6 +31,8 @@
 #include <asm/div64.h>
 #include <asm/sections.h>	/* for dereference_function_descriptor() */
 
+#include <linux/syscalls.h>
+
 /* Works only for digits and letters, but small and fast */
 #define TOLOWER(x) ((x) | 0x20)
 
@@ -77,6 +79,29 @@ unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
 	return result;
 }
 EXPORT_SYMBOL(simple_strtoul);
+
+unsigned long modsimple_strtoul(const char *cp, char **endp, unsigned int base)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modsimple_strtoul)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(cp), "m"(endp), "m"(base) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsimple_strtoul);
+SYSCALL_DEFINE3(modsimple_strtoul, const char, *cp, char, **endp, unsigned int, base)
+{
+	return simple_strtoul(cp, endp, base);
+}
 
 /**
  * simple_strtol - convert a string to a signed long
@@ -1352,6 +1377,27 @@ int snprintf(char * buf, size_t size, const char *fmt, ...)
 	return i;
 }
 EXPORT_SYMBOL(snprintf);
+int modsnprintf(char * buf, size_t size, const char *fmt, ...)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		// PARAMS
+		"\tmovl $"STR(__SR_modsnprintf)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsnprintf);
+SYSCALL_DEFINE0(modsnprintf)
+{
+	printk("\n[42***] No snprintf");
+	return 0;
+}
 
 /**
  * scnprintf - Format a string and place it in a buffer
@@ -1420,6 +1466,26 @@ int sprintf(char * buf, const char *fmt, ...)
 	return i;
 }
 EXPORT_SYMBOL(sprintf);
+int modsprintf(char * buf, const char *fmt, ...)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modsprintf)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsprintf);
+SYSCALL_DEFINE0(modsprintf)
+{
+	printk("\n[42***] No modsprintf");
+	return 0;
+}
 
 #ifdef CONFIG_BINARY_PRINTF
 /*

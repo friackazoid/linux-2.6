@@ -103,6 +103,12 @@ loff_t no_llseek(struct file *file, loff_t offset, int origin)
 }
 EXPORT_SYMBOL(no_llseek);
 
+loff_t modno_llseek(struct file *file, loff_t offset, int origin)
+{
+	return no_llseek(file, offset, origin);
+}
+EXPORT_SYMBOL(modno_llseek);
+
 loff_t default_llseek(struct file *file, loff_t offset, int origin)
 {
 	loff_t retval;

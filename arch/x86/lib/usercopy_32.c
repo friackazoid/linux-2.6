@@ -13,6 +13,7 @@
 #include <linux/interrupt.h>
 #include <asm/uaccess.h>
 #include <asm/mmx.h>
+#include <linux/syscalls.h>
 
 #ifdef CONFIG_X86_INTEL_USERCOPY
 /*
@@ -857,6 +858,29 @@ copy_to_user(void __user *to, const void *from, unsigned long n)
 }
 EXPORT_SYMBOL(copy_to_user);
 
+unsigned long modcopy_to_user(void __user *to, const void *from, unsigned long n)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modcopy_to_user)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(to), "m"(from), "m"(n) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcopy_to_user);
+SYSCALL_DEFINE3(modcopy_to_user, void __user, *to, const void, *from, unsigned long, n)
+{
+	return copy_to_user(to, from, n);
+}
+
 /**
  * copy_from_user: - Copy a block of data from user space.
  * @to:   Destination address, in kernel space.
@@ -883,6 +907,29 @@ _copy_from_user(void *to, const void __user *from, unsigned long n)
 	return n;
 }
 EXPORT_SYMBOL(_copy_from_user);
+unsigned long
+mod_copy_from_user(void *to, const void __user *from, unsigned long n)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_mod_copy_from_user)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(to), "m"(from), "m"(n) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod_copy_from_user);
+SYSCALL_DEFINE3(mod_copy_from_user, void, *to, const void __user, *from, unsigned long, n)
+{
+	return _copy_from_user(to, from, n);
+}
 
 void copy_from_user_overflow(void)
 {

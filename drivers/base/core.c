@@ -23,6 +23,8 @@
 #include <linux/semaphore.h>
 #include <linux/mutex.h>
 #include <linux/async.h>
+#include <linux/syscalls.h>
+#include <asm/unistd.h> /* The macros __SR_mod_ define */
 
 #include "base.h"
 #include "power/power.h"
@@ -68,6 +70,26 @@ const char *dev_driver_string(const struct device *dev)
 			(dev->class ? dev->class->name : ""));
 }
 EXPORT_SYMBOL(dev_driver_string);
+const char *moddev_driver_string(const struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_moddev_driver_string)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddev_driver_string);
+SYSCALL_DEFINE1(moddev_driver_string, const struct device, *dev)
+{
+	return dev_driver_string(dev);
+}
 
 #define to_dev(obj) container_of(obj, struct device, kobj)
 #define to_dev_attr(_attr) container_of(_attr, struct device_attribute, attr)
@@ -453,6 +475,27 @@ int device_create_file(struct device *dev, struct device_attribute *attr)
 		error = sysfs_create_file(&dev->kobj, &attr->attr);
 	return error;
 }
+int moddevice_create_file(struct device *dev, struct device_attribute *attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_moddevice_create_file)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev), "m"(attr):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_create_file);
+SYSCALL_DEFINE2(moddevice_create_file, struct device, *dev, struct device_attribute, *attr)
+{
+	return device_create_file(dev, attr);
+}
 
 /**
  * device_remove_file - remove sysfs attribute file.
@@ -804,6 +847,27 @@ int dev_set_name(struct device *dev, const char *fmt, ...)
 	return err;
 }
 EXPORT_SYMBOL_GPL(dev_set_name);
+int moddev_set_name(struct device *dev, const char *fmt, ...)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_moddev_set_name)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(moddev_set_name);
+SYSCALL_DEFINE0(moddev_set_name)
+{
+	printk("\n[42***] No moddev_set_name");
+	return 0;
+}
+
 
 /**
  * device_to_dev_kobj - select a /sys/dev/ directory for the device
@@ -1035,6 +1099,26 @@ int device_register(struct device *dev)
 	device_initialize(dev);
 	return device_add(dev);
 }
+int moddevice_register(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_moddevice_register)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_register);
+SYSCALL_DEFINE1(moddevice_register, struct device, *dev)
+{
+	return device_register(dev);
+}
 
 /**
  * get_device - increment reference count for device.
@@ -1048,6 +1132,26 @@ struct device *get_device(struct device *dev)
 {
 	return dev ? to_dev(kobject_get(&dev->kobj)) : NULL;
 }
+struct device *modget_device(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modget_device)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modget_device);
+SYSCALL_DEFINE1(modget_device, struct device, *dev)
+{
+	return get_device(dev);
+}
 
 /**
  * put_device - decrement reference count.
@@ -1058,6 +1162,26 @@ void put_device(struct device *dev)
 	/* might_sleep(); */
 	if (dev)
 		kobject_put(&dev->kobj);
+}
+void modput_device(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modput_device)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modput_device);
+SYSCALL_DEFINE1(modput_device, struct device, *dev)
+{
+	put_device(dev);
+	return;
 }
 
 /**
@@ -1144,6 +1268,26 @@ void device_unregister(struct device *dev)
 	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
 	device_del(dev);
 	put_device(dev);
+}
+void moddevice_unregister(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_moddevice_unregister)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_unregister);
+SYSCALL_DEFINE1(moddevice_unregister, struct device, *dev)
+{
+	device_unregister(dev);
+	return;
 }
 
 static struct device *next_device(struct klist_iter *i)

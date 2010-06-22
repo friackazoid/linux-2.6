@@ -21,6 +21,8 @@
 #include <linux/mutex.h>
 #include <linux/backing-dev.h>
 
+#include <linux/syscalls.h>
+
 #include "internal.h"
 
 /*
@@ -236,7 +238,31 @@ int alloc_chrdev_region(dev_t *dev, unsigned baseminor, unsigned count,
 	*dev = MKDEV(cd->major, cd->baseminor);
 	return 0;
 }
-
+int modalloc_chrdev_region(dev_t *dev, unsigned baseminor, unsigned count,
+			const char *name)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_modalloc_chrdev_region)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev), "m"(baseminor), "m"(count), "m"(name) :"ebx", "ecx", "edx", "esi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modalloc_chrdev_region);
+SYSCALL_DEFINE4(modalloc_chrdev_region, dev_t, *dev, unsigned, baseminor, unsigned, count,
+			const char, *name)
+{
+	return alloc_chrdev_region(dev, baseminor, count, name);
+}
 /**
  * __register_chrdev() - create and register a cdev occupying a range of minors
  * @major: major device number or 0 for dynamic allocation
@@ -312,6 +338,28 @@ void unregister_chrdev_region(dev_t from, unsigned count)
 			next = to;
 		kfree(__unregister_chrdev_region(MAJOR(n), MINOR(n), next - n));
 	}
+}
+
+void modunregister_chrdev_region(dev_t from, unsigned count)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modunregister_chrdev_region)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(from), "m"(count) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SUMBOL(modunregister_chrdev_region);
+SYSCALL_DEFINE2(modunregister_chrdev_region, dev_t, from, unsigned, count)
+{
+	unregister_chrdev_region(from, count);
+	return;
 }
 
 /**
@@ -483,6 +531,28 @@ int cdev_add(struct cdev *p, dev_t dev, unsigned count)
 	p->count = count;
 	return kobj_map(cdev_map, dev, count, NULL, exact_match, exact_lock, p);
 }
+int modcdev_add(struct cdev *p, dev_t dev, unsigned count)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modcdev_add)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(p), "m"(dev), "m"(count) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcdev_add);
+SYSCALL_DEFINE3(modcdev_add, struct cdev, *p, dev_t, dev, unsigned, count)
+{
+	return cdev_add(p, dev, count);
+}
 
 static void cdev_unmap(dev_t dev, unsigned count)
 {
@@ -553,6 +623,27 @@ void cdev_init(struct cdev *cdev, const struct file_operations *fops)
 	INIT_LIST_HEAD(&cdev->list);
 	kobject_init(&cdev->kobj, &ktype_cdev_default);
 	cdev->ops = fops;
+}
+void modcdev_init(struct cdev *cdev, const struct file_operations *fops)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modcdev_init)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(cdev), "m"(fops) :"ebx", "ecx","eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcdev_init);
+SYSCALL_DEFINE2(modcdev_init, struct cdev, *cdev, const struct file_operations, *fops)
+{
+	cdev_init(cdev, fops);
+	return;
 }
 
 static struct kobject *base_probe(dev_t dev, int *part, void *data)

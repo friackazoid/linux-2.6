@@ -5504,6 +5504,26 @@ need_resched_nonpreemptible:
 }
 EXPORT_SYMBOL(schedule);
 
+asmlinkage void __sched modschedule(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modschedule)", %%eax\n"
+		"\tint $0x80\n"
+		:::"eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modschedule);
+SYSCALL_DEFINE0(modschedule)
+{
+	schedule();
+	return;
+}
+
 #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
 /*
  * Look out! "owner" is an entirely speculative pointer
@@ -5633,6 +5653,32 @@ int default_wake_function(wait_queue_t *curr, unsigned mode, int wake_flags,
 }
 EXPORT_SYMBOL(default_wake_function);
 
+int moddefault_wake_function(wait_queue_t *curr, unsigned mode, int wake_flags,
+			  void *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_moddefault_wake_function)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(curr), "m"(mode), "m"(wake_flags), "m"(key) :"ebx", "ecx", "edx", "esi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddefault_wake_function);
+SYSCALL_DEFINE4(moddefault_wake_function, wait_queue_t, *curr, unsigned, mode, int, wake_flags,
+			  void, *key)
+{
+	return default_wake_function(curr, mode, wake_flags, key);
+}
+
 /*
  * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
  * wake everything up. If it's an exclusive wakeup (nr_exclusive == small +ve
@@ -5676,6 +5722,31 @@ void __wake_up(wait_queue_head_t *q, unsigned int mode,
 	spin_unlock_irqrestore(&q->lock, flags);
 }
 EXPORT_SYMBOL(__wake_up);
+void mod__wake_up(wait_queue_head_t *q, unsigned int mode,
+			int nr_exclusive, void *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl %3, %%esi\n"
+		"\tmovl $"STR(__SR_mod__wake_up)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(q), "m"(mode), "m"(nr_exclusive), "m"(key) :"ebx", "ecx", "edx", "esi", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__wake_up);
+SYSCALL_DEFINE4(mod__wake_up, wait_queue_head_t, *q, unsigned int, mode,
+			int, nr_exclusive, void, *key)
+{
+	__wake_up(q, mode, nr_exclusive, key);
+	return;
+}
 
 /*
  * Same as __wake_up but called with the spinlock in wait_queue_head_t held.

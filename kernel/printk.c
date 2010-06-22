@@ -600,8 +600,24 @@ asmlinkage int printk(const char *fmt, ...)
 	return r;
 }
 
+asmlinkage int modprintk(const char *fmt, ...)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_mod_printk)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modprintk);
 SYSCALL_DEFINE0(mod_printk)
 {
+	printk("\n[42***] No printk");
 	return 0;
 }
 

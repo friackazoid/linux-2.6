@@ -566,9 +566,12 @@ ENDPROC(ia32_sysenter_target)
 	.pushsection .kprobes.text, "ax"
 	# system call handler stub
 ENTRY(system_call)
-	cmpl $0xe9,0x4(%esp)
-	jnz orig_int
+	cmpl $0x60,0x4(%esp)
+	je orig_int
+	cmpl $0x73,0x4(%esp)
+	je orig_int
 pedal:
+	// if call (int 0x80) not USER or KERNEL
 	cmpl $0, %eax
 	je fast_exit
 

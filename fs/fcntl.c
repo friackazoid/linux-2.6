@@ -19,6 +19,7 @@
 #include <linux/signal.h>
 #include <linux/rcupdate.h>
 #include <linux/pid_namespace.h>
+#include <linux/syscalls.h>
 
 #include <asm/poll.h>
 #include <asm/siginfo.h>
@@ -674,6 +675,30 @@ out:
 
 EXPORT_SYMBOL(fasync_helper);
 
+int modfasync_helper(int fd, struct file * filp, int on, struct fasync_struct **fapp)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_modfasync_helper)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(fd), "m"(filp), "m"(on), "m"(fapp) :"ebx", "ecx", "edx", "esi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modfasync_helper);
+SYSCALL_DEFINE4(modfasync_helper, int, fd, struct file*, filp, int, on, struct fasync_struct, **fapp)
+{
+	return fasync_helper(fd, filp, on, fapp);
+}
+
 void __kill_fasync(struct fasync_struct *fa, int sig, int band)
 {
 	while (fa) {
@@ -708,6 +733,28 @@ void kill_fasync(struct fasync_struct **fp, int sig, int band)
 	}
 }
 EXPORT_SYMBOL(kill_fasync);
+void modkill_fasync(struct fasync_struct **fp, int sig, int band)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl $"STR(__SR_modkill_fasync)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(fp), "m"(sig), "m"(band) :"ebx", "ecx", "edx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkill_fasync);
+SYSCALL_DEFINE3(modkill_fasync, struct fasync_struct, **fp, int, sig, int, band)
+{
+	kill_fasync(fp, sig, band);
+	return;
+}
 
 static int __init fasync_init(void)
 {

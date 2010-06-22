@@ -5,7 +5,7 @@
 #include <linux/rcupdate.h>
 #include <linux/vmalloc.h>
 #include <linux/reboot.h>
-
+#include <linux/syscalls.h>
 /*
  *	Notifier list for kernel code which wants to be called
  *	at shutdown. This is used to stop any idling DMA operations
@@ -226,6 +226,30 @@ int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
 	return ret;
 }
 EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
+int modblocking_notifier_chain_register(struct blocking_notifier_head *nh,
+		struct notifier_block *n)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modblocking_notifier_chain_register)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(nh), "m"(n):"ebx", "ecx","eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE2(modblocking_notifier_chain_register, struct blocking_notifier_head*, nh,
+		struct notifier_block*, n)
+{
+	return blocking_notifier_chain_register(nh, n);
+}
+
+EXPORT_SYMBOL_GPL(modblocking_notifier_chain_register);
 
 /**
  *	blocking_notifier_chain_cond_register - Cond add notifier to a blocking notifier chain
@@ -279,7 +303,29 @@ int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
 	return ret;
 }
 EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);
-
+int modblocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
+		struct notifier_block *n)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modblocking_notifier_chain_unregister)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(nh), "m"(n):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modblocking_notifier_chain_unregister);
+SYSCALL_DEFINE2(modblocking_notifier_chain_unregister, struct blocking_notifier_head, *nh,
+		struct notifier_block, *n)
+{
+	return blocking_notifier_chain_unregister(nh, n);
+}
 /**
  *	__blocking_notifier_call_chain - Call functions in a blocking notifier chain
  *	@nh: Pointer to head of the blocking notifier chain
@@ -325,6 +371,30 @@ int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
 	return __blocking_notifier_call_chain(nh, val, v, -1, NULL);
 }
 EXPORT_SYMBOL_GPL(blocking_notifier_call_chain);
+int modblocking_notifier_call_chain(struct blocking_notifier_head *nh,
+		unsigned long val, void *v)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modblocking_notifier_call_chain)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(nh), "m"(val), "m"(v) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modblocking_notifier_call_chain);
+SYSCALL_DEFINE3(modblocking_notifier_call_chain, struct blocking_notifier_head*, nh,
+		unsigned long, val, void*, v)
+{
+	return blocking_notifier_call_chain(nh, val, v);
+}
 
 /*
  *	Raw notifier chain routines.  There is no protection;

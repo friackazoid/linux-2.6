@@ -9,6 +9,7 @@
 #include <linux/mm.h>
 #include <linux/wait.h>
 #include <linux/hash.h>
+#include <linux/syscalls.h>
 
 void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *key)
 {
@@ -16,8 +17,29 @@ void __init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *key)
 	lockdep_set_class(&q->lock, key);
 	INIT_LIST_HEAD(&q->task_list);
 }
-
 EXPORT_SYMBOL(__init_waitqueue_head);
+
+void mod__init_waitqueue_head(wait_queue_head_t *q, struct lock_class_key *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_mod__init_waitqueue_head)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(q), "m"(key) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__init_waitqueue_head);
+SYSCALL_DEFINE2(mod__init_waitqueue_head, wait_queue_head_t, *q, struct lock_class_key, *key)
+{
+	__init_waitqueue_head(q, key);
+	return;
+}
 
 void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
 {
@@ -29,6 +51,28 @@ void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
 	spin_unlock_irqrestore(&q->lock, flags);
 }
 EXPORT_SYMBOL(add_wait_queue);
+
+void modadd_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modadd_wait_queue)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(q), "m"(wait) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modadd_wait_queue);
+SYSCALL_DEFINE2(modadd_wait_queue, wait_queue_head_t, *q, wait_queue_t, *wait)
+{
+	add_wait_queue(q, wait);
+	return;
+}
 
 void add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait)
 {
@@ -50,6 +94,27 @@ void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
 	spin_unlock_irqrestore(&q->lock, flags);
 }
 EXPORT_SYMBOL(remove_wait_queue);
+void modremove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modremove_wait_queue)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(q), "m"(wait) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modremove_wait_queue);
+SYSCALL_DEFINE2(modremove_wait_queue, wait_queue_head_t, *q, wait_queue_t, *wait)
+{
+	remove_wait_queue(q, wait);
+	return;
+}
 
 
 /*

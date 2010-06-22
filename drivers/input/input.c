@@ -24,6 +24,7 @@
 #include <linux/mutex.h>
 #include <linux/rcupdate.h>
 #include <linux/smp_lock.h>
+#include <linux/syscalls.h>
 
 MODULE_AUTHOR("Vojtech Pavlik <vojtech@suse.cz>");
 MODULE_DESCRIPTION("Input core");
@@ -313,6 +314,30 @@ void input_event(struct input_dev *dev,
 	}
 }
 EXPORT_SYMBOL(input_event);
+
+void modinput_event(struct input_dev *dev,
+		 unsigned int type, unsigned int code, int value)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl %3, %%esi\n"
+		"\tmovl $"STR(__SR_modinput_event)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev), "m"(type), "m"(code), "m"(value):"ebx", "ecx", "edx", "esi", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinput_event);
+SYSCALL_DEFINE4(modinput_event, struct input_dev, *dev,
+		 unsigned int, type, unsigned int, code, int, value)
+{
+	input_event(dev,type, code, value);
+	return;
+}
 
 /**
  * input_inject_event() - send input event from input handler
@@ -1406,6 +1431,26 @@ struct input_dev *input_allocate_device(void)
 	return dev;
 }
 EXPORT_SYMBOL(input_allocate_device);
+struct input_dev *modinput_allocate_device(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modinput_allocate_device)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinput_allocate_device);
+SYSCALL_DEFINE0(modinput_allocate_device)
+{
+	return (long) input_allocate_device();
+}
 
 /**
  * input_free_device - free memory occupied by input_dev structure
@@ -1427,6 +1472,26 @@ void input_free_device(struct input_dev *dev)
 		input_put_device(dev);
 }
 EXPORT_SYMBOL(input_free_device);
+void modinput_free_device(struct input_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modinput_free_device)", %%eax\n"
+		"\tint $0x80\n"
+		::"r"(dev) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinput_free_device);
+SYSCALL_DEFINE1(modinput_free_device, struct input_dev*, dev)
+{
+	input_free_device(dev);
+	return;
+}
 
 /**
  * input_set_capability - mark device as capable of a certain event
@@ -1558,6 +1623,26 @@ int input_register_device(struct input_dev *dev)
 	return 0;
 }
 EXPORT_SYMBOL(input_register_device);
+int modinput_register_device(struct input_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modinput_register_device)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinput_register_device);
+SYSCALL_DEFINE1(modinput_register_device, struct input_dev, *dev)
+{
+	return input_register_device(dev);
+}
 
 /**
  * input_unregister_device - unregister previously registered device
@@ -1588,6 +1673,25 @@ void input_unregister_device(struct input_dev *dev)
 	device_unregister(&dev->dev);
 }
 EXPORT_SYMBOL(input_unregister_device);
+void modinput_unregister_device(struct input_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modinput_unregister_device)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev):"ebx","eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinput_unregister_device);
+SYSCALL_DEFINE1(modinput_unregister_device, struct input_dev*, dev)
+{
+	modinput_unregister_device(dev);
+	return;
+}
+
 
 /**
  * input_register_handler - register a new input handler

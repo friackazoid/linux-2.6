@@ -1053,8 +1053,9 @@ SYSCALL_DEFINE0(mod_rettoker)
 			"\tmovl %eax, %fs\n" 		//restore selector of kernel level
 			"\tmovl $"STR(__KERNEL_STACK_CANARY)", %eax\n"
 			"\tmovl %eax, %gs\n" 		//restore selector of kernel level
-			"\tpopl %eax\n" // + 1 to facl count
-			"\tpopl %ebx\n" // + 2 to fack count
+			"\taddl $8, %esp\n"
+			//"\tpopl %eax\n" // + 1 to facl count
+			//"\tpopl %ebx\n" // + 2 to fack count
 			"\tret\n"	// exit exit exit
 	);
 #undef STR

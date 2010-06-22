@@ -12,6 +12,7 @@
 
 #include <linux/string.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 
 #ifdef __HAVE_ARCH_STRCPY
 char *strcpy(char *dest, const char *src)
@@ -26,6 +27,27 @@ char *strcpy(char *dest, const char *src)
 	return dest;
 }
 EXPORT_SYMBOL(strcpy);
+char * modstrcpy(char *dest, const char *src)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modstrcpy)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dest), "m"(src):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modstrcpy);
+SYSCALL_DEFINE2(modstrcpy, char*, dest, const char*, src)
+{
+	return strcpy(dest, src);
+}
 #endif
 
 #ifdef __HAVE_ARCH_STRNCPY
@@ -111,6 +133,11 @@ int strcmp(const char *cs, const char *ct)
 	return res;
 }
 EXPORT_SYMBOL(strcmp);
+int modstrcmp(const char *cs, const char *ct)
+{
+	return strcmp(cs, ct);
+}
+EXPORT_SYMBOL(modstrcmp);
 #endif
 
 #ifdef __HAVE_ARCH_STRNCMP
