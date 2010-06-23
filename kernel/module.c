@@ -1632,9 +1632,10 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 	unsigned int i, n = sechdrs[symindex].sh_size / sizeof(Elf_Sym);
 	int ret = 0;
 	const struct kernel_symbol *ksym;
+	char *mod_name;
 
 	for (i = 1; i < n; i++) {
-		printk("[42***] - Symbol: %s - %0.8X\n", strtab + sym[i].st_name, sym[i].st_value);
+		//printk("[42***] - Symbol: %s - %0.8X\n", strtab + sym[i].st_name, sym[i].st_value);
 		switch (sym[i].st_shndx) {
 		case SHN_COMMON:
 			/* We compiled with -fno-common.  These are not
@@ -1652,18 +1653,36 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 			break;
 
 		case SHN_UNDEF:
+			mod_name = kmalloc(strlen(strtab + sym[i].st_name) + 3, GFP_KERNEL);
+			strcpy(mod_name, "mod");
+			strcat(mod_name, strtab + sym[i].st_name);
+			printk("[42Tdbg] %s:%i\n", mod_name, strlen(mod_name));
+			printk("[42Tdbg] %s:%i\n", strtab + sym[i].st_name,
+				strlen(strtab + sym[i].st_name));
 			ksym = resolve_symbol(sechdrs, versindex,
-					      strtab + sym[i].st_name, mod);
-			printk("[42Tdbg] SHN_UNDEF_ALL: %s\n", strtab + sym[i].st_name);
+					      mod_name, mod);
 			/* Ok if resolved.  */
-			if (ksym && (security_module_check_funk_perm (mod, ksym->name) == 0)) {
-				printk("[42Tdbg] SHN_UNDEF_KSYM: %s\n", strtab + sym[i].st_name);
+			if (ksym) {
+				printk("[42Tdbg] ModName resolved: %s\n",
+					mod_name);
 				sym[i].st_value = ksym->value;
+				kfree(mod_name);
 				break;
+			}
+			else {
+				kfree(mod_name);
+				ksym = resolve_symbol(sechdrs, versindex,
+					      strtab + sym[i].st_name, mod);
+				if (ksym) {
+					printk("[42Tdbg] KernelName resolved: %s\n",
+						 strtab + sym[i].st_name);
+					sym[i].st_value = ksym->value;
+					break;
+				}
 			}
 
 			/* Ok if weak.  */
-			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK && (security_module_check_funk_perm (mod, ksym->name) == 0))
+			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK)
 				break;
 
 			printk(KERN_WARNING "%s: Unknown symbol %s\n",
@@ -2357,7 +2376,6 @@ static noinline struct module *load_module(void __user *umod,
 
 	/* Set up MODINFO_ATTR fields */
 	setup_modinfo(mod, sechdrs, infoindex);
-	security_module_set_cred (mod);
 
 	/* Fix up syms, so that st_value is a pointer to location. */
 	err = simplify_symbols(sechdrs, symindex, strtab, versindex, pcpuindex,
