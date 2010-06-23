@@ -105,32 +105,32 @@ ENTRY(mod_call_table)
 	.long sys_modclass_find_device
 	.long sys_modhpet_rtc_timer_init
 	.long sys_modfree_irq
-	.long sys_moddev_get_drvdata
+	.long sys_mod_printk
 	.long sys_modplatform_driver_unregister
 	.long sys_modplatform_get_irq
-	.long sys_modsystem_state
+	.long sys_mod_printk
 	.long sys_modsysfs_create_bin_file
 	.long sys_modacpi_clear_event
 	.long sys_modis_hpet_enabled
 	.long sys_modhpet_mask_rtc_irq_bit
 	.long sys_mod__release_region
 	.long sys_modhpet_rtc_interrupt
-	.long sys_modbcd2bin
-	.long sys_modrtc_lock
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_modpnp_get_resource
 	.long sys_modhpet_register_irq_handler
 	.long sys_modpnp_register_driver
 	.long sys_modrequest_threaded_irq
 	.long sys_modhpet_set_alarm_time
 	.long sys_modplatform_get_resource
-	.long sys_modacpi_disabled
+	.long sys_mod_printk
 	.long sys_modrtc_cmos_write
 	.long sys_modrtc_cmos_read
 	.long sys_modhpet_set_periodic_freq
-	.long sys_modioport_resource
+	.long sys_mod_printk
 	.long sys_modrtc_update_irq
-	.long sys_modbin2bcd
-	.long sys_modacpi_gbl_FADT
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_modpnp_unregister_driver
 	.long sys_modacpi_enable_event
 	.long sys_modhpet_set_rtc_irq_bit
@@ -150,12 +150,12 @@ ENTRY(mod_call_table)
 	.long sys_modpci_save_state
 	.long sys_modyield
 	.long sys_mod_unlock_kernel
-	.long sys_moddma_ops
+	.long sys_mod_printk
 	.long sys_modd_instantiate
 	.long sys_moddma_pool_create
 	.long sys_modbus_unregister_notifier
 	.long sys_modwait_for_completion_timeout
-	.long sys_modsimple_dir_inode_operations
+	.long sys_mod_printk
 	.long sys_modpci_enable_device
 	.long sys_modlookup_one_len
 	.long sys_modnew_inode

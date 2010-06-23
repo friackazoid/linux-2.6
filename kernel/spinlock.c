@@ -300,6 +300,25 @@ void __lockfunc _spin_lock(spinlock_t *lock)
 	__spin_lock(lock);
 }
 EXPORT_SYMBOL(_spin_lock);
+
+void __lockfunc mod_spin_lock(spinlock_t *lock)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod_spin_lock)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(lock) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod_spin_lock);
+SYSCALL_DEFINE1(mod_spin_lock, spinlock_t, *lock)
+{
+	_spin_lock(lock);
+	return;
+}
 #endif
 
 #ifndef CONFIG_INLINE_WRITE_LOCK

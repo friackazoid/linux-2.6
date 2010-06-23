@@ -14,6 +14,7 @@
 #include <linux/rtc.h>
 #include <linux/sched.h>
 #include <linux/log2.h>
+#include <linux/syscalls.h>
 
 int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm)
 {
@@ -392,6 +393,29 @@ void rtc_update_irq(struct rtc_device *rtc,
 	kill_fasync(&rtc->async_queue, SIGIO, POLL_IN);
 }
 EXPORT_SYMBOL_GPL(rtc_update_irq);
+
+void modrtc_update_irq(struct rtc_device *rtc,
+		unsigned long num, unsigned long events)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl $"STR(__SR_modrtc_update_irq)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(rtc), "m"(num), "m"(events) :"ebx", "ecx", "edx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modrtc_update_irq);
+SYSCALL_DEFINE3(modrtc_update_irq, struct rtc_device, *rtc,
+		unsigned long, num, unsigned long, events)
+{
+	rtc_update_irq(rtc, num, events);
+	return;
+}
 
 static int __rtc_match(struct device *dev, void *data)
 {

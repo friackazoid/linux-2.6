@@ -42,6 +42,7 @@
  */
 
 #include <acpi/acpi.h>
+#include <linux/syscalls.h>
 #include "accommon.h"
 #include "acnamesp.h"
 #include "acevents.h"
@@ -161,6 +162,32 @@ acpi_install_fixed_event_handler(u32 event,
 }
 
 ACPI_EXPORT_SYMBOL(acpi_install_fixed_event_handler)
+
+acpi_status
+modacpi_install_fixed_event_handler(u32 event,
+				 acpi_event_handler handler, void *context)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modacpi_install_fixed_event_handler)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(event), "m"(handler), "m"(context) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+ACPI_EXPORT_SYMBOL(modacpi_install_fixed_event_handler)
+SYSCALL_DEFINE3(modacpi_install_fixed_event_handler, u32, event,
+				 acpi_event_handler, handler, void, *context)
+{
+	return acpi_install_fixed_event_handler(event, handler, context);
+}
 
 /*******************************************************************************
  *

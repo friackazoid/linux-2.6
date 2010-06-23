@@ -15,6 +15,7 @@
 #include <linux/rtc.h>
 #include <linux/kdev_t.h>
 #include <linux/idr.h>
+#include <linux/syscalls.h>
 
 #include "rtc-core.h"
 
@@ -184,6 +185,37 @@ exit:
 }
 EXPORT_SYMBOL_GPL(rtc_device_register);
 
+struct rtc_device *modrtc_device_register(const char *name, struct device *dev,
+					const struct rtc_class_ops *ops,
+					struct module *owner)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	unsigned long ret;
+		
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_modrtc_device_register)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(name), "m"(dev), "m"(ops), "m"(owner) :"ebx", "ecx", "edx", "esi", "eax");
+
+#undef STR
+#undef __STR
+	return ret;
+}
+EXPORT_SYMBOL_GPL(modrtc_device_register);
+SYSCALL_DEFINE4(modrtc_device_register, const char, *name, struct device, *dev,
+					const struct rtc_class_ops, *ops,
+					struct module, *owner)
+{
+	return modrtc_device_register(name, dev, ops, owner);
+}
+
 
 /**
  * rtc_device_unregister - removes the previously registered RTC class device
@@ -207,6 +239,25 @@ void rtc_device_unregister(struct rtc_device *rtc)
 	}
 }
 EXPORT_SYMBOL_GPL(rtc_device_unregister);
+
+void modrtc_device_unregister(struct rtc_device *rtc)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modrtc_device_unregister)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(rtc) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modrtc_device_unregister);
+SYSCALL_DEFINE1(modrtc_device_unregister, struct rtc_device, *rtc)
+{
+	rtc_device_unregister(rtc);
+	return;
+}
 
 static int __init rtc_init(void)
 {

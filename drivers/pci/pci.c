@@ -19,6 +19,7 @@
 #include <linux/pci-aspm.h>
 #include <linux/pm_wakeup.h>
 #include <linux/interrupt.h>
+#include <linux/syscalls.h>
 #include <asm/dma.h>	/* isa_dma_bridge_buggy */
 #include <linux/device.h>
 #include <asm/setup.h>
@@ -859,6 +860,27 @@ pci_save_state(struct pci_dev *dev)
 	return 0;
 }
 
+int modpci_save_state(struct pci_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modpci_save_state)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+
+SYSCALL_DEFINE1(modpci_save_state, struct pci_dev, *dev)
+{
+	return pci_save_state(dev);
+}
+
 /** 
  * pci_restore_state - Restore the saved state of a PCI device
  * @dev: - PCI device that we're dealing with
@@ -986,6 +1008,27 @@ int pci_enable_device_mem(struct pci_dev *dev)
 int pci_enable_device(struct pci_dev *dev)
 {
 	return __pci_enable_device_flags(dev, IORESOURCE_MEM | IORESOURCE_IO);
+}
+
+int modpci_enable_device(struct pci_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modpci_enable_device)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+
+SYSCALL_DEFINE1(modpci_enable_device, struct pci_dev, *dev)
+{
+	return pci_enable_device(dev);
 }
 
 /*
@@ -2820,6 +2863,7 @@ EXPORT_SYMBOL(pci_reenable_device);
 EXPORT_SYMBOL(pci_enable_device_io);
 EXPORT_SYMBOL(pci_enable_device_mem);
 EXPORT_SYMBOL(pci_enable_device);
+EXPORT_SYMBOL(modpci_enable_device);
 EXPORT_SYMBOL(pcim_enable_device);
 EXPORT_SYMBOL(pcim_pin_device);
 EXPORT_SYMBOL(pci_disable_device);
@@ -2848,6 +2892,7 @@ EXPORT_SYMBOL(pci_select_bars);
 
 EXPORT_SYMBOL(pci_set_power_state);
 EXPORT_SYMBOL(pci_save_state);
+EXPORT_SYMBOL(modpci_save_state);
 EXPORT_SYMBOL(pci_restore_state);
 EXPORT_SYMBOL(pci_pme_capable);
 EXPORT_SYMBOL(pci_pme_active);
@@ -2857,4 +2902,3 @@ EXPORT_SYMBOL(pci_target_state);
 EXPORT_SYMBOL(pci_prepare_to_sleep);
 EXPORT_SYMBOL(pci_back_from_sleep);
 EXPORT_SYMBOL_GPL(pci_set_pcie_reset_state);
-

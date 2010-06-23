@@ -5828,6 +5828,26 @@ void complete(struct completion *x)
 }
 EXPORT_SYMBOL(complete);
 
+void modcomplete(struct completion *x)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modcomplete)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(x) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcomplete);
+SYSCALL_DEFINE1(modcomplete, struct completion, *x)
+{
+	complete(x);
+}
+
 /**
  * complete_all: - signals all threads waiting on this completion
  * @x:  holds the state of this particular completion
@@ -5916,6 +5936,29 @@ wait_for_completion_timeout(struct completion *x, unsigned long timeout)
 	return wait_for_common(x, timeout, TASK_UNINTERRUPTIBLE);
 }
 EXPORT_SYMBOL(wait_for_completion_timeout);
+
+unsigned long __sched
+modwait_for_completion_timeout(struct completion *x, unsigned long timeout)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modwait_for_completion_timeout)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(x), "m"(timeout):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modwait_for_completion_timeout);
+SYSCALL_DEFINE2(modwait_for_completion_timeout, struct completion, *x, unsigned long, timeout)
+{
+	return wait_for_completion_timeout(x, timeout);
+}
 
 /**
  * wait_for_completion_interruptible: - waits for completion of a task (w/intr)
@@ -6839,6 +6882,26 @@ void __sched yield(void)
 	sys_sched_yield();
 }
 EXPORT_SYMBOL(yield);
+
+void __sched modyield(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modyield)", %%eax\n"
+		"\tint $0x80\n"
+		:::"eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modyield);
+SYSCALL_DEFINE0(modyield)
+{
+	yield();
+	return;
+}
 
 /*
  * This task is about to go to sleep on IO. Increment rq->nr_iowait so

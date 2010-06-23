@@ -36,6 +36,7 @@
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/wait.h>
+#include <linux/syscalls.h>
 
 #if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
 #define DMAPOOL_DEBUG 1
@@ -195,6 +196,34 @@ struct dma_pool *dma_pool_create(const char *name, struct device *dev,
 	return retval;
 }
 EXPORT_SYMBOL(dma_pool_create);
+
+struct dma_pool *moddma_pool_create(const char *name, struct device *dev,
+				 size_t size, size_t align, size_t boundary)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl %5, %%edi\n"
+		"\tmovl $"STR(__SR_moddma_pool_create)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(name), "m"(dev), "m"(size), "m"(align), "m"(boundary):
+		"ebx", "ecx", "edx", "esi", "edi", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddma_pool_create);
+SYSCALL_DEFINE5(moddma_pool_create, const char, *name, struct device, *dev,
+				 size_t, size, size_t, align, size_t, boundary)
+{
+	return dma_pool_create(name, dev, size, align, boundary);
+}
 
 static void pool_initialise_page(struct dma_pool *pool, struct dma_page *page)
 {

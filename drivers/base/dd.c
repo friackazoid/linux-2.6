@@ -24,6 +24,7 @@
 #include <linux/wait.h>
 #include <linux/async.h>
 #include <linux/pm_runtime.h>
+#include <linux/syscalls.h>
 
 #include "base.h"
 #include "power/power.h"
@@ -403,6 +404,13 @@ void *dev_get_drvdata(const struct device *dev)
 	return NULL;
 }
 EXPORT_SYMBOL(dev_get_drvdata);
+void *moddev_get_drvdata(const struct device *dev)
+{
+	if (dev && dev->p)
+		return dev->p->driver_data;
+	return NULL;
+}
+EXPORT_SYMBOL(moddev_get_drvdata);
 
 void dev_set_drvdata(struct device *dev, void *data)
 {
@@ -418,3 +426,23 @@ void dev_set_drvdata(struct device *dev, void *data)
 	dev->p->driver_data = data;
 }
 EXPORT_SYMBOL(dev_set_drvdata);
+
+void moddev_set_drvdata(struct device *dev, void *data)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_moddev_set_drvdata)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev), "m"(data) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddev_set_drvdata);
+SYSCALL_DEFINE2(moddev_set_drvdata, struct device, *dev, void, *data)
+{
+	dev_set_drvdata(dev, data);
+	return;
+}

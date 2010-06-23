@@ -33,6 +33,7 @@
 #include <linux/bootmem.h>
 #include <linux/fs_struct.h>
 #include <linux/hardirq.h>
+#include <linux/syscalls.h>
 #include "internal.h"
 
 int sysctl_vfs_cache_pressure __read_mostly = 100;
@@ -1010,6 +1011,26 @@ void d_instantiate(struct dentry *entry, struct inode * inode)
 	__d_instantiate(entry, inode);
 	spin_unlock(&dcache_lock);
 	security_d_instantiate(entry, inode);
+}
+
+void modd_instantiate(struct dentry *entry, struct inode * inode)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modd_instantiate)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(entry), "m"(inode) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE2(modd_instantiate, struct dentry, *entry, struct inode, *inode)
+{
+	modd_instantiate(entry, inode);
 }
 
 /**
@@ -2331,6 +2352,7 @@ EXPORT_SYMBOL(d_alloc_root);
 EXPORT_SYMBOL(d_delete);
 EXPORT_SYMBOL(d_find_alias);
 EXPORT_SYMBOL(d_instantiate);
+EXPORT_SYMBOL(modd_instantiate);
 EXPORT_SYMBOL(d_invalidate);
 EXPORT_SYMBOL(d_lookup);
 EXPORT_SYMBOL(d_move);

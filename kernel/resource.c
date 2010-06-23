@@ -19,6 +19,7 @@
 #include <linux/device.h>
 #include <linux/pfn.h>
 #include <asm/io.h>
+#include <linux/syscalls.h>
 
 
 struct resource ioport_resource = {
@@ -650,6 +651,38 @@ struct resource * __request_region(struct resource *parent,
 }
 EXPORT_SYMBOL(__request_region);
 
+struct resource * mod__request_region(struct resource *parent,
+				   resource_size_t start, resource_size_t n,
+				   const char *name, int flags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	unsigned long ret;
+		
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl %5, %%edi\n"
+		"\tmovl $"STR(__SR_mod__request_region)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(parent), "m"(start), "m"(n), "m"(name), "m"(flags) :"ebx", "ecx", "edx", "esi", "edi", "eax");
+
+#undef STR
+#undef __STR
+	return ret;
+}
+EXPORT_SYMBOL(mod__request_region);
+SYSCALL_DEFINE5(mod__request_region, struct resource, *parent,
+				   resource_size_t, start, resource_size_t, n,
+				   const char, *name, int, flags)
+{
+	return __request_region(parent, start, n, name, flags);
+}
+
 /**
  * __check_region - check if a resource region is busy or free
  * @parent: parent resource descriptor
@@ -727,6 +760,28 @@ void __release_region(struct resource *parent, resource_size_t start,
 }
 EXPORT_SYMBOL(__release_region);
 
+void mod__release_region(struct resource *parent, resource_size_t start,
+			resource_size_t n)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl $"STR(__SR_mod__release_region)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(parent), "m"(start), "m"(n) :"ebx", "ecx", "edx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__release_region);
+SYSCALL_DEFINE3(mod__release_region, struct resource, *parent, resource_size_t, start,
+			resource_size_t, n)
+{
+	__release_region(parent, start, n);
+	return;
+}
 /*
  * Managed region resource
  */

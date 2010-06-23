@@ -22,6 +22,7 @@
 #include <linux/slab.h>
 #include <linux/mutex.h>
 #include <linux/mm.h>
+#include <linux/syscalls.h>
 
 #include <asm/uaccess.h>
 
@@ -490,6 +491,28 @@ int sysfs_create_bin_file(struct kobject * kobj, struct bin_attribute * attr)
 	return sysfs_add_file(kobj->sd, &attr->attr, SYSFS_KOBJ_BIN_ATTR);
 }
 
+int modsysfs_create_bin_file(struct kobject * kobj, struct bin_attribute * attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modsysfs_create_bin_file)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(kobj), "m"(attr):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsysfs_create_bin_file);
+SYSCALL_DEFINE2(modsysfs_create_bin_file, struct kobject*, kobj, struct bin_attribute*, attr)
+{
+	return sysfs_create_bin_file(kobj, attr);
+}
+
 
 /**
  *	sysfs_remove_bin_file - remove binary file for object.
@@ -502,5 +525,28 @@ void sysfs_remove_bin_file(struct kobject * kobj, struct bin_attribute * attr)
 	sysfs_hash_and_remove(kobj->sd, attr->attr.name);
 }
 
+void modsysfs_remove_bin_file(struct kobject * kobj, struct bin_attribute * attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modsysfs_remove_bin_file)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(kobj), "m"(attr) :"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR	
+}
+
+SYSCALL_DEFINE2(modsysfs_remove_bin_file, struct kobject*, kobj, struct bin_attribute*, attr)
+{
+	sysfs_remove_bin_file(kobj, attr);
+	return;
+}
+
 EXPORT_SYMBOL_GPL(sysfs_create_bin_file);
 EXPORT_SYMBOL_GPL(sysfs_remove_bin_file);
+EXPORT_SYMBOL_GPL(modsysfs_remove_bin_file);

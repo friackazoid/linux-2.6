@@ -6,6 +6,7 @@
 #include <linux/acpi.h>
 #include <linux/bcd.h>
 #include <linux/pnp.h>
+#include <linux/syscalls.h>
 
 #include <asm/vsyscall.h>
 #include <asm/x86_init.h>
@@ -157,6 +158,27 @@ unsigned char rtc_cmos_read(unsigned char addr)
 }
 EXPORT_SYMBOL(rtc_cmos_read);
 
+unsigned char modrtc_cmos_read(unsigned char addr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modrtc_cmos_read)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(addr):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modrtc_cmos_read);
+SYSCALL_DEFINE1(modrtc_cmos_read, unsigned char, addr)
+{
+	return modrtc_cmos_read(addr);
+}
+
 void rtc_cmos_write(unsigned char val, unsigned char addr)
 {
 	lock_cmos_prefix(addr);
@@ -165,6 +187,26 @@ void rtc_cmos_write(unsigned char val, unsigned char addr)
 	lock_cmos_suffix(addr);
 }
 EXPORT_SYMBOL(rtc_cmos_write);
+
+void modrtc_cmos_write(unsigned char val, unsigned char addr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modrtc_cmos_write)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(val), "m"(addr) :"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modrtc_cmos_write);
+SYSCALL_DEFINE2(modrtc_cmos_write, unsigned char, val, unsigned char, addr)
+{
+	rtc_cmos_write(val, addr);
+	return;
+}
 
 int update_persistent_clock(struct timespec now)
 {

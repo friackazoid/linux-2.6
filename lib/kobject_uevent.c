@@ -18,6 +18,7 @@
 #include <linux/string.h>
 #include <linux/kobject.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 
 #include <linux/socket.h>
 #include <linux/skbuff.h>
@@ -317,6 +318,27 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(add_uevent_var);
+
+int modadd_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modadd_uevent_var)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modadd_uevent_var);
+SYSCALL_DEFINE0(modadd_uevent_var)
+{
+	printk("\n[42***] No add_uevent_var()");
+	return 0;
+}
 
 #if defined(CONFIG_NET)
 static int __init kobject_uevent_init(void)
