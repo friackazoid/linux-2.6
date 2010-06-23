@@ -1286,6 +1286,29 @@ struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
 	return __lookup_hash(&this, base, NULL);
 }
 
+struct dentry *modlookup_one_len(const char *name, struct dentry *base, int len)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modlookup_one_len)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(name), "m"(base), "m"(len) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+
+SYSCALL_DEFINE3(modlookup_one_len, const char, *name, struct dentry, *base, int, len)
+{
+	return lookup_one_len(name, base, len);
+}
+
 int user_path_at(int dfd, const char __user *name, unsigned flags,
 		 struct path *path)
 {
@@ -2923,6 +2946,7 @@ EXPORT_SYMBOL(get_write_access); /* binfmt_aout */
 EXPORT_SYMBOL(getname);
 EXPORT_SYMBOL(lock_rename);
 EXPORT_SYMBOL(lookup_one_len);
+EXPORT_SYMBOL(modlookup_one_len);
 EXPORT_SYMBOL(page_follow_link_light);
 EXPORT_SYMBOL(page_put_link);
 EXPORT_SYMBOL(page_readlink);

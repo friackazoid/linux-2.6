@@ -200,6 +200,28 @@ acpi_status acpi_enable_event(u32 event, u32 flags)
 
 ACPI_EXPORT_SYMBOL(acpi_enable_event)
 
+acpi_status modacpi_enable_event(u32 event, u32 flags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modacpi_enable_event)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(event), "m"(flags):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+ACPI_EXPORT_SYMBOL(modacpi_enable_event)
+SYSCALL_DEFINE2(modacpi_enable_event, u32, event, u32, flags)
+{
+	return acpi_enable_event(event, flags);
+}
+
 /*******************************************************************************
  *
  * FUNCTION:    acpi_set_gpe_type
@@ -423,6 +445,28 @@ acpi_status acpi_disable_event(u32 event, u32 flags)
 
 ACPI_EXPORT_SYMBOL(acpi_disable_event)
 
+acpi_status modacpi_disable_event(u32 event, u32 flags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modacpi_disable_event)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(event), "m"(flags):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+ACPI_EXPORT_SYMBOL(modacpi_disable_event)
+SYSCALL_DEFINE2(modacpi_disable_event, u32, event, u32, flags)
+{
+	return acpi_disable_event(event, flags);
+}
+
 /*******************************************************************************
  *
  * FUNCTION:    acpi_clear_event
@@ -458,6 +502,27 @@ acpi_status acpi_clear_event(u32 event)
 }
 
 ACPI_EXPORT_SYMBOL(acpi_clear_event)
+
+acpi_status modacpi_clear_event(u32 event)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modacpi_clear_event)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(event):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+ACPI_EXPORT_SYMBOL(modacpi_clear_event)
+SYSCALL_DEFINE1(modacpi_clear_event, u32, event)
+{
+	return acpi_clear_event(event);
+}
 
 /*******************************************************************************
  *

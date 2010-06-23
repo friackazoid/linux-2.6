@@ -17,6 +17,7 @@
 #include <linux/pci.h>
 #include <linux/ioport.h>
 #include <linux/init.h>
+#include <linux/syscalls.h>
 
 #include <linux/pnp.h>
 #include "base.h"
@@ -487,6 +488,31 @@ struct resource *pnp_get_resource(struct pnp_dev *dev,
 	return NULL;
 }
 EXPORT_SYMBOL(pnp_get_resource);
+
+struct resource *modpnp_get_resource(struct pnp_dev *dev,
+				  unsigned long type, unsigned int num)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modpnp_get_resource)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev), "m"(type), "m"(num) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpnp_get_resource);
+SYSCALL_DEFINE3(modpnp_get_resource, struct pnp_dev, *dev,
+				  unsigned long, type, unsigned int, num)
+{
+	return pnp_get_resource(dev, type, num);
+}
 
 static struct pnp_resource *pnp_new_resource(struct pnp_dev *dev)
 {

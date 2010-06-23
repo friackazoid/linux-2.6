@@ -15,6 +15,7 @@
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/string.h>
+#include <linux/syscalls.h>
 #include "base.h"
 #include "power/power.h"
 
@@ -983,6 +984,28 @@ int bus_unregister_notifier(struct bus_type *bus, struct notifier_block *nb)
 	return blocking_notifier_chain_unregister(&bus->p->bus_notifier, nb);
 }
 EXPORT_SYMBOL_GPL(bus_unregister_notifier);
+
+int modbus_unregister_notifier(struct bus_type *bus, struct notifier_block *nb)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modbus_unregister_notifier)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(bus), "m"(nb):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modbus_unregister_notifier);
+SYSCALL_DEFINE2(modbus_unregister_notifier, struct bus_type, *bus, struct notifier_block, *nb)
+{
+	return bus_unregister_notifier(bus, nb);
+}
 
 struct kset *bus_get_kset(struct bus_type *bus)
 {

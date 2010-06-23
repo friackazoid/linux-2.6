@@ -19,6 +19,7 @@
 #include <linux/err.h>
 #include <linux/slab.h>
 #include <linux/pm_runtime.h>
+#include <linux/syscalls.h>
 
 #include "base.h"
 
@@ -51,6 +52,31 @@ struct resource *platform_get_resource(struct platform_device *dev,
 }
 EXPORT_SYMBOL_GPL(platform_get_resource);
 
+struct resource *modplatform_get_resource(struct platform_device *dev,
+				       unsigned int type, unsigned int num)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modplatform_get_resource)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev), "m"(type), "m"(num) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modplatform_get_resource);
+SYSCALL_DEFINE3(modplatform_get_resource, struct platform_device, *dev,
+				       unsigned int, type, unsigned int, num)
+{
+	return platform_get_resource(dev, type, num);
+}
+
 /**
  * platform_get_irq - get an IRQ for a device
  * @dev: platform device
@@ -63,6 +89,28 @@ int platform_get_irq(struct platform_device *dev, unsigned int num)
 	return r ? r->start : -ENXIO;
 }
 EXPORT_SYMBOL_GPL(platform_get_irq);
+
+int modplatform_get_irq(struct platform_device *dev, unsigned int num)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modplatform_get_irq)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(dev), "m"(num):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modplatform_get_irq);
+SYSCALL_DEFINE2(modplatform_get_irq, struct platform_device, *dev, unsigned int, num)
+{
+	return platform_get_irq(dev, num);
+}
 
 /**
  * platform_get_resource_byname - get a resource for a device by name
@@ -499,6 +547,25 @@ void platform_driver_unregister(struct platform_driver *drv)
 }
 EXPORT_SYMBOL_GPL(platform_driver_unregister);
 
+void modplatform_driver_unregister(struct platform_driver *drv)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modplatform_driver_unregister)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(drv) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modplatform_driver_unregister);
+SYSCALL_DEFINE1(modplatform_driver_unregister, struct platform_driver, *drv)
+{
+	platform_driver_unregister(drv);
+	return;
+}
+
 /**
  * platform_driver_probe - register driver for non-hotpluggable device
  * @drv: platform driver structure
@@ -546,6 +613,33 @@ int __init_or_module platform_driver_probe(struct platform_driver *drv,
 	return retval;
 }
 EXPORT_SYMBOL_GPL(platform_driver_probe);
+
+int __init_or_module modplatform_driver_probe(struct platform_driver *drv,
+		int (*probe)(struct platform_device *))
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	unsigned long ret;
+		
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modplatform_driver_probe)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(drv), "m"(probe):"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+	return ret;
+}
+EXPORT_SYMBOL_GPL(modplatform_driver_probe);
+SYSCALL_DEFINE2(modplatform_driver_probe, struct platform_driver, *drv,
+		int, (*probe)(struct platform_device *))
+{
+	return platform_driver_probe(drv, probe);
+}
 
 /* modalias support enables more hands-off userspace setup:
  * (a) environment variable lets new-style hotplug events work once system is
@@ -1239,4 +1333,3 @@ void __init early_platform_cleanup(void)
 		memset(&pd->dev.devres_head, 0, sizeof(pd->dev.devres_head));
 	}
 }
-

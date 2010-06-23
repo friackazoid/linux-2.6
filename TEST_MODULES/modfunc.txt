@@ -1,5 +1,5 @@
 input_allocate_device 			#
-strcpy 					#
+strcpy 					# без обработчика
 acpi_device_hid 			#
 acpi_enable_gpe 			#
 snprintf 				#
@@ -17,7 +17,7 @@ acpi_bus_generate_proc_event 		#
 printk 					#
 proc_mkdir				#
 input_event				#
-strcmp					#
+strcmp					# без обработчика
 seq_read				#
 sprintf					#
 blocking_notifier_chain_unregister	#
@@ -50,7 +50,7 @@ dev_driver_string			#
 dynamic_debug_enabled			? (переменная)
 schedule				#
 put_device				#
-__put_user_4				# ассемблерная
+__put_user_4				? ассемблерная
 rtc_tm_to_time				#
 pv_irq_ops		? структура
 capable			#
@@ -88,66 +88,66 @@ rtc_time_to_tm		# (без обработчика)
 rtc_month_days		# (без обработчика)
 cdev_init		#
 per_cpu__current_task	?
-cdev_del
-device_remove_file
-class_find_device
-hpet_rtc_timer_init
-free_irq
-dev_get_drvdata
-platform_driver_unregister
-platform_get_irq
-system_state
-sysfs_create_bin_file
-acpi_clear_event
-is_hpet_enabled
-hpet_mask_rtc_irq_bit
-__release_region
-hpet_rtc_interrupt
-bcd2bin
-rtc_lock
-pnp_get_resource
-hpet_register_irq_handler
-pnp_register_driver
-request_threaded_irq
-hpet_set_alarm_time
-platform_get_resource
-acpi_disabled
-rtc_cmos_write
-rtc_cmos_read
-hpet_set_periodic_freq
-ioport_resource
-rtc_update_irq
-bin2bcd
-acpi_gbl_FADT
-pnp_unregister_driver
-acpi_enable_event
-hpet_set_rtc_irq_bit
-__const_udelay
-acpi_disable_event
-_spin_lock
-rtc_device_unregister
-dev_set_drvdata
-acpi_install_fixed_event_handler
-hpet_unregister_irq_handler
-set_irq_wake
-sysfs_remove_bin_file
-rtc_device_register
-__request_region
-platform_driver_probe
-add_uevent_var
-pci_save_state
-yield
-_unlock_kernel
-dma_ops
-d_instantiate
-dma_pool_create
-bus_unregister_notifier
-wait_for_completion_timeout
-simple_dir_inode_operations
-pci_enable_device
-lookup_one_len
-new_inode
-complete			-- Последняя для Cupper
+cdev_del		#
+device_remove_file	#
+class_find_device	#? в параметрах передается функция
+hpet_rtc_timer_init	#
+free_irq		#
+dev_get_drvdata		# без обработчика
+platform_driver_unregister	#
+platform_get_irq		#
+system_state			? тип данных (enum)
+sysfs_create_bin_file		#
+acpi_clear_event		#
+is_hpet_enabled			#
+hpet_mask_rtc_irq_bit		#
+__release_region		#
+hpet_rtc_interrupt		#
+bcd2bin				# без обработчика
+rtc_lock			?
+pnp_get_resource		#
+hpet_register_irq_handler	# в параметрах указатель на функцию
+pnp_register_driver		#
+request_threaded_irq		#
+hpet_set_alarm_time		#
+platform_get_resource		#
+acpi_disabled			? переменная
+rtc_cmos_write			#
+rtc_cmos_read			#
+hpet_set_periodic_freq		#
+ioport_resource			? структура
+rtc_update_irq			#
+bin2bcd				# без обработчика
+acpi_gbl_FADT			? структура
+pnp_unregister_driver		#
+acpi_enable_event		#
+hpet_set_rtc_irq_bit		#
+__const_udelay			#
+acpi_disable_event		#
+_spin_lock			#
+rtc_device_unregister		#
+dev_set_drvdata			#
+acpi_install_fixed_event_handler# в параметрах указатель на функцию
+hpet_unregister_irq_handler	# в параметрах указатель на функцию
+set_irq_wake			#
+sysfs_remove_bin_file		#
+rtc_device_register		#
+__request_region		#
+platform_driver_probe		# в параметрах указатель на функцию
+add_uevent_var			# пустышка
+pci_save_state			#
+yield				#
+_unlock_kernel			#
+dma_ops				? указатель
+d_instantiate			#
+dma_pool_create			#
+bus_unregister_notifier		#
+wait_for_completion_timeout	#
+simple_dir_inode_operations	? структура
+pci_enable_device		#
+lookup_one_len			#
+new_inode			#
+complete			#-- Последняя для Cupper
 security_task_getsecid		-- Первая для friki
 driver_remove_file
 init_special_inode

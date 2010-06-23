@@ -508,6 +508,26 @@ void device_remove_file(struct device *dev, struct device_attribute *attr)
 		sysfs_remove_file(&dev->kobj, &attr->attr);
 }
 
+void moddevice_remove_file(struct device *dev, struct device_attribute *attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_moddevice_remove_file)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev), "m"(attr) :"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_remove_file);
+SYSCALL_DEFINE2(moddevice_remove_file, struct device, *dev, struct device_attribute, *attr)
+{
+	device_remove_file(dev, attr);
+	return;
+}
+
 /**
  * device_create_bin_file - create sysfs binary attribute file for device.
  * @dev: device.

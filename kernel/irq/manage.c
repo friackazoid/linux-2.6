@@ -14,6 +14,7 @@
 #include <linux/interrupt.h>
 #include <linux/slab.h>
 #include <linux/sched.h>
+#include <linux/syscalls.h>
 
 #include "internals.h"
 
@@ -372,6 +373,31 @@ int set_irq_wake(unsigned int irq, unsigned int on)
 	return ret;
 }
 EXPORT_SYMBOL(set_irq_wake);
+
+int modset_irq_wake(unsigned int irq, unsigned int on)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+
+	unsigned long ret;
+		
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modset_irq_wake)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(irq), "m"(on):"ebx", "ecx", "eax");
+
+#undef STR
+#undef __STR
+	return ret;
+}
+EXPORT_SYMBOL(modset_irq_wake);
+SYSCALL_DEFINE2(modset_irq_wake, unsigned int, irq, unsigned int, on)
+{
+	return set_irq_wake(irq, on);
+}
 
 /*
  * Internal function that tells the architecture code whether a
@@ -956,6 +982,26 @@ void free_irq(unsigned int irq, void *dev_id)
 }
 EXPORT_SYMBOL(free_irq);
 
+void modfree_irq(unsigned int irq, void *dev_id)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modfree_irq)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(irq), "m"(dev_id) :"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modfree_irq);
+SYSCALL_DEFINE2(modfree_irq, unsigned int, irq, void, *dev_id)
+{
+	free_irq(irq, dev_id);
+	return;
+}
+
 /**
  *	request_threaded_irq - allocate an interrupt line
  *	@irq: Interrupt line to allocate
@@ -1088,3 +1134,44 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 	return retval;
 }
 EXPORT_SYMBOL(request_threaded_irq);
+
+struct modrti
+{
+	unsigned int irq;
+	irq_handler_t handler;
+	unsigned long irqflags;
+	const char *devname;
+	void *dev_id;
+};
+
+int modrequest_threaded_irq(unsigned int irq, irq_handler_t handler,
+			 irq_handler_t thread_fn, unsigned long irqflags,
+			 const char *devname, void *dev_id)
+{
+	struct modrti a;
+	a.irq = irq;
+	a.handler = handler;
+	a.irqflags = irqflags;
+	a.devname = devname;
+	a.dev_id = dev_id;
+	struct modrti *b = &a;
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modrequest_threaded_irq)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(b), "m"(thread_fn):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modrequest_threaded_irq);
+SYSCALL_DEFINE2(modrequest_threaded_irq, struct modrti*, params, irq_handler_t, thread_fn)
+{
+	return request_threaded_irq(params->irq, params->handler, thread_fn, 
+				params->irqflags, params->devname, params->dev_id);
+}

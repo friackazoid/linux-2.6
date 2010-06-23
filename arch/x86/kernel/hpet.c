@@ -10,6 +10,8 @@
 #include <linux/pm.h>
 #include <linux/io.h>
 
+#include <linux/syscalls.h>
+
 #include <asm/fixmap.h>
 #include <asm/i8253.h>
 #include <asm/hpet.h>
@@ -122,6 +124,26 @@ int is_hpet_enabled(void)
 	return is_hpet_capable() && hpet_legacy_int_enabled;
 }
 EXPORT_SYMBOL_GPL(is_hpet_enabled);
+
+int modis_hpet_enabled(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modis_hpet_enabled)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modis_hpet_enabled);
+SYSCALL_DEFINE0(modis_hpet_enabled)
+{
+	return is_hpet_enabled();
+}
 
 static void _hpet_print_config(const char *function, int line)
 {
@@ -1014,6 +1036,26 @@ int hpet_register_irq_handler(rtc_irq_handler handler)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(hpet_register_irq_handler);
+int modhpet_register_irq_handler(rtc_irq_handler handler)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modhpet_register_irq_handler)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(handler):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_register_irq_handler);
+SYSCALL_DEFINE1(modhpet_register_irq_handler, rtc_irq_handler, handler)
+{
+	return modhpet_register_irq_handler(handler);
+}
 
 /*
  * Deregisters the IRQ handler registered with hpet_register_irq_handler()
@@ -1028,6 +1070,27 @@ void hpet_unregister_irq_handler(rtc_irq_handler handler)
 	hpet_rtc_flags = 0;
 }
 EXPORT_SYMBOL_GPL(hpet_unregister_irq_handler);
+
+void modhpet_unregister_irq_handler(rtc_irq_handler handler)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modhpet_unregister_irq_handler)", %%eax\n"
+		"\tint $0x80\n"
+		::"r"(handler) :"ebx", "eax");
+
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_unregister_irq_handler);
+SYSCALL_DEFINE1(modhpet_unregister_irq_handler, rtc_irq_handler, handler)
+{
+	hpet_unregister_irq_handler(handler);
+	return;
+}
 
 /*
  * Timer 1 for RTC emulation. We use one shot mode, as periodic mode
@@ -1073,6 +1136,26 @@ int hpet_rtc_timer_init(void)
 }
 EXPORT_SYMBOL_GPL(hpet_rtc_timer_init);
 
+int modhpet_rtc_timer_init(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modhpet_rtc_timer_init)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret)::"eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_rtc_timer_init);
+SYSCALL_DEFINE0(modhpet_rtc_timer_init)
+{
+	return hpet_rtc_timer_init();
+}
+
 /*
  * The functions below are called from rtc driver.
  * Return 0 if HPET is not being used.
@@ -1087,6 +1170,27 @@ int hpet_mask_rtc_irq_bit(unsigned long bit_mask)
 	return 1;
 }
 EXPORT_SYMBOL_GPL(hpet_mask_rtc_irq_bit);
+
+int modhpet_mask_rtc_irq_bit(unsigned long bit_mask)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modhpet_mask_rtc_irq_bit)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(bit_mask):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_mask_rtc_irq_bit);
+SYSCALL_DEFINE1(modhpet_mask_rtc_irq_bit, unsigned long, bit_mask)
+{
+	return hpet_mask_rtc_irq_bit(bit_mask);
+}
 
 int hpet_set_rtc_irq_bit(unsigned long bit_mask)
 {
@@ -1107,6 +1211,27 @@ int hpet_set_rtc_irq_bit(unsigned long bit_mask)
 }
 EXPORT_SYMBOL_GPL(hpet_set_rtc_irq_bit);
 
+int modhpet_set_rtc_irq_bit(unsigned long bit_mask)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modhpet_set_rtc_irq_bit)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(bit_mask):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_set_rtc_irq_bit);
+SYSCALL_DEFINE1(modhpet_set_rtc_irq_bit, unsigned long, bit_mask)
+{
+	return hpet_set_rtc_irq_bit(bit_mask);
+}
+
 int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
 			unsigned char sec)
 {
@@ -1120,6 +1245,31 @@ int hpet_set_alarm_time(unsigned char hrs, unsigned char min,
 	return 1;
 }
 EXPORT_SYMBOL_GPL(hpet_set_alarm_time);
+
+int modhpet_set_alarm_time(unsigned char hrs, unsigned char min,
+			unsigned char sec)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl $"STR(__SR_modhpet_set_alarm_time)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(hrs), "m"(min), "m"(sec) :"ebx", "ecx", "edx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_set_alarm_time);
+SYSCALL_DEFINE3(modhpet_set_alarm_time, unsigned char, hrs, unsigned char, min,
+			unsigned char, sec)
+{
+	return hpet_set_alarm_time(hrs, min, sec);
+}
 
 int hpet_set_periodic_freq(unsigned long freq)
 {
@@ -1139,6 +1289,27 @@ int hpet_set_periodic_freq(unsigned long freq)
 	return 1;
 }
 EXPORT_SYMBOL_GPL(hpet_set_periodic_freq);
+
+int modhpet_set_periodic_freq(unsigned long freq)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modhpet_set_periodic_freq)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(freq):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_set_periodic_freq);
+SYSCALL_DEFINE1(modhpet_set_periodic_freq, unsigned long, freq)
+{
+	return hpet_set_periodic_freq(freq);
+}
 
 int hpet_rtc_dropped_irq(void)
 {
@@ -1220,4 +1391,26 @@ irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 EXPORT_SYMBOL_GPL(hpet_rtc_interrupt);
+
+irqreturn_t modhpet_rtc_interrupt(int irq, void *dev_id)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modhpet_rtc_interrupt)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(irq), "m"(dev_id):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modhpet_rtc_interrupt);
+SYSCALL_DEFINE2(modhpet_rtc_interrupt, int, irq, void, *dev_id)
+{
+	return hpet_rtc_interrupt(irq, dev_id);
+}
 #endif

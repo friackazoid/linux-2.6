@@ -17,6 +17,7 @@
 #include <linux/preempt.h>
 #include <linux/delay.h>
 #include <linux/init.h>
+#include <linux/syscalls.h>
 
 #include <asm/processor.h>
 #include <asm/delay.h>
@@ -126,6 +127,25 @@ inline void __const_udelay(unsigned long xloops)
 	__delay(++xloops);
 }
 EXPORT_SYMBOL(__const_udelay);
+
+inline void mod__const_udelay(unsigned long xloops)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_mod__const_udelay)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(xloops) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__const_udelay);
+SYSCALL_DEFINE1(mod__const_udelay, unsigned long, xloops)
+{
+	__const_udelay(xloops);
+	return;
+}
 
 void __udelay(unsigned long usecs)
 {

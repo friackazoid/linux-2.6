@@ -10,6 +10,7 @@
 #include <linux/ctype.h>
 #include <linux/slab.h>
 #include <linux/pnp.h>
+#include <linux/syscalls.h>
 #include "base.h"
 
 static int compare_func(const char *ida, const char *idb)
@@ -225,10 +226,49 @@ int pnp_register_driver(struct pnp_driver *drv)
 
 	return driver_register(&drv->driver);
 }
+int modpnp_register_driver(struct pnp_driver *drv)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modpnp_register_driver)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(drv):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpnp_register_driver);
+SYSCALL_DEFINE1(modpnp_register_driver, struct pnp_driver, *drv)
+{
+	return pnp_register_driver(drv);
+}
 
 void pnp_unregister_driver(struct pnp_driver *drv)
 {
 	driver_unregister(&drv->driver);
+}
+
+void modpnp_unregister_driver(struct pnp_driver *drv)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modpnp_unregister_driver)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(drv) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpnp_unregister_driver);
+SYSCALL_DEFINE1(modpnp_unregister_driver, struct pnp_driver, *drv)
+{
+	pnp_unregister_driver(drv);
+	return;
 }
 
 /**

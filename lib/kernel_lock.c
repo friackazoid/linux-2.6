@@ -9,6 +9,7 @@
 #include <linux/kallsyms.h>
 #include <linux/semaphore.h>
 #include <linux/smp_lock.h>
+#include <linux/syscalls.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/bkl.h>
@@ -138,6 +139,28 @@ void __lockfunc _unlock_kernel(const char *func, const char *file, int line)
 	trace_unlock_kernel(func, file, line);
 }
 
+void __lockfunc mod_unlock_kernel(const char *func, const char *file, int line)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+		
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+		"\tmovl $"STR(__SR_mod_unlock_kernel)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(func), "m"(file), "m"(line):"ebx", "ecx", "edx", "eax");
+
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE3(mod_unlock_kernel, const char, *func, const char, *file, int, line)
+{
+	_unlock_kernel(func, file, line);
+	return;
+}
+
 EXPORT_SYMBOL(_lock_kernel);
 EXPORT_SYMBOL(_unlock_kernel);
-
+EXPORT_SYMBOL(mod_unlock_kernel);

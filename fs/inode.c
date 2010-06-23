@@ -26,6 +26,7 @@
 #include <linux/mount.h>
 #include <linux/async.h>
 #include <linux/posix_acl.h>
+#include <linux/syscalls.h>
 
 /*
  * This is needed for the following functions:
@@ -669,6 +670,27 @@ struct inode *new_inode(struct super_block *sb)
 	return inode;
 }
 EXPORT_SYMBOL(new_inode);
+
+struct inode *modnew_inode(struct super_block *sb)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modnew_inode)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(sb):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modnew_inode);
+SYSCALL_DEFINE1(modnew_inode, struct super_block, *sb)
+{
+	return new_inode(sb);
+}
 
 void unlock_new_inode(struct inode *inode)
 {
