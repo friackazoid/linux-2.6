@@ -100,7 +100,7 @@ ENTRY(mod_call_table)
 	.long sys_mod_printk
 	.long sys_modcdev_init
 	.long sys_mod_printk
-	.long sys_modcdev_del
+/*	.long sys_modcdev_del
 	.long sys_moddevice_remove_file
 	.long sys_modclass_find_device
 	.long sys_modhpet_rtc_timer_init
@@ -289,4 +289,4 @@ ENTRY(mod_call_table)
 	.long sys_moddevice_remove_bin_file
 	.long sys_modsimple_pin_fs
 	.long sys_modbus_register
-	.long sys_mod__unregister_chrdev
+	.long sys_mod__unregister_chrdev*/

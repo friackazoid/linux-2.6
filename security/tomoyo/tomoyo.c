@@ -59,8 +59,8 @@ static int tomoyo_bprm_set_creds(struct linux_binprm *bprm)
 	 * Load policy if /sbin/tomoyo-init exists and /sbin/init is requested
 	 * for the first time.
 	 */
-	//if (!tomoyo_policy_loaded)
-	//	tomoyo_load_policy(bprm->filename);
+	if (!tomoyo_policy_loaded)
+		tomoyo_load_policy(bprm->filename);
 	/*
 	 * Tell tomoyo_bprm_check_security() is called for the first time of an
 	 * execve operation.
@@ -238,6 +238,7 @@ static struct security_operations tomoyo_security_ops = {
 	.path_link           = tomoyo_path_link,
 	.path_rename         = tomoyo_path_rename,
 	.module_set_cred     = tomoyo_module_set_cred,
+	.module_check_funk_perm = tomoyo_module_check_funk_perm
 };
 
 static int __init tomoyo_init(void)

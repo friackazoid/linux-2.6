@@ -14,7 +14,7 @@
 #include <linux/mnt_namespace.h>
 #include <linux/fs_struct.h>
 #include <linux/hash.h>
-#include <asm/safeint.h>
+//#include <asm/safeint.h>
 
 #include "common.h"
 #include "realpath.h"
@@ -138,8 +138,8 @@ int tomoyo_realpath_from_path2(struct path *path, char *newname,
 			}
 		}
 	}
-	//if (error)
-		//printk(KERN_WARNING "tomoyo_realpath: Pathname too long.\n");
+	if (error)
+		printk(KERN_WARNING "tomoyo_realpath: Pathname too long.\n");
 	return error;
 }
 
@@ -179,7 +179,7 @@ char *tomoyo_realpath(const char *pathname)
 {
 	struct path path;
 
-	if (pathname && skern_path(pathname, LOOKUP_FOLLOW, &path) == 0) {
+	if (pathname && /*s*/kern_path(pathname, LOOKUP_FOLLOW, &path) == 0) {
 		char *buf = tomoyo_realpath_from_path(&path);
 		path_put(&path);
 		return buf;
@@ -198,7 +198,7 @@ char *tomoyo_realpath_nofollow(const char *pathname)
 {
 	struct path path;
 
-	if (pathname && skern_path(pathname, 0, &path) == 0) {
+	if (pathname && /*s*/kern_path(pathname, 0, &path) == 0) {
 		char *buf = tomoyo_realpath_from_path(&path);
 		path_put(&path);
 		return buf;
@@ -232,15 +232,15 @@ void *tomoyo_alloc_element(const unsigned int size)
 		= roundup(size, max(sizeof(void *), sizeof(long)));
 	if (word_aligned_size > PATH_MAX)
 		return NULL;
-	smutex_lock(&lock);
+	/*s*/mutex_lock(&lock);
 	if (buf_used_len + word_aligned_size > PATH_MAX) {
 		if (!tomoyo_quota_for_elements ||
 		    tomoyo_allocated_memory_for_elements
 		    + PATH_MAX <= tomoyo_quota_for_elements)
-			ptr = skzalloc(PATH_MAX, GFP_KERNEL);
+			ptr = /*s*/kzalloc(PATH_MAX, GFP_KERNEL);
 		if (!ptr) {
-			//printk(KERN_WARNING "ERROR: Out of memory "
-			//       "for tomoyo_alloc_element().\n");
+			printk(KERN_WARNING "ERROR: Out of memory "
+			       "for tomoyo_alloc_element().\n");
 			if (!tomoyo_policy_loaded)
 				panic("MAC Initialization failed.\n");
 		} else {
@@ -256,12 +256,12 @@ void *tomoyo_alloc_element(const unsigned int size)
 		for (i = 0; i < word_aligned_size; i++) {
 			if (!ptr[i])
 				continue;
-			//printk(KERN_ERR "WARNING: Reserved memory was tainted! "
-			//       "The system might go wrong.\n");
+			printk(KERN_ERR "WARNING: Reserved memory was tainted! "
+			       "The system might go wrong.\n");
 			ptr[i] = '\0';
 		}
 	}
-	smutex_unlock(&lock);
+	/*s*/mutex_unlock(&lock);
 	return ptr;
 }
 
@@ -334,14 +334,14 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 		return NULL;
 	len = strlen(name) + 1;
 	if (len > TOMOYO_MAX_PATHNAME_LEN) {
-		//printk(KERN_WARNING "ERROR: Name too long "
-		//       "for tomoyo_save_name().\n");
+		printk(KERN_WARNING "ERROR: Name too long "
+		       "for tomoyo_save_name().\n");
 		return NULL;
 	}
 	hash = full_name_hash((const unsigned char *) name, len - 1);
 	head = &tomoyo_name_list[hash_long(hash, TOMOYO_HASH_BITS)];
 
-	smutex_lock(&lock);
+	/*s*/mutex_lock(&lock);
 	list_for_each_entry(ptr, head, list) {
 		if (hash == ptr->entry.hash && !strcmp(name, ptr->entry.name))
 			goto out;
@@ -353,15 +353,15 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 	if (!tomoyo_quota_for_savename ||
 	    tomoyo_allocated_memory_for_savename + PATH_MAX
 	    <= tomoyo_quota_for_savename)
-		cp = skzalloc(PATH_MAX, GFP_KERNEL);
+		cp = /*s*/kzalloc(PATH_MAX, GFP_KERNEL);
 	else
 		cp = NULL;
-	fmb = skzalloc(sizeof(*fmb), GFP_KERNEL);
+	fmb = /*s*/kzalloc(sizeof(*fmb), GFP_KERNEL);
 	if (!cp || !fmb) {
-		skfree(cp);
-		skfree(fmb);
-		//printk(KERN_WARNING "ERROR: Out of memory "
-		//       "for tomoyo_save_name().\n");
+		/*s*/kfree(cp);
+		/*s*/kfree(fmb);
+		printk(KERN_WARNING "ERROR: Out of memory "
+		       "for tomoyo_save_name().\n");
 		if (!tomoyo_policy_loaded)
 			panic("MAC Initialization failed.\n");
 		ptr = NULL;
@@ -383,10 +383,10 @@ const struct tomoyo_path_info *tomoyo_save_name(const char *name)
 	list_add_tail(&ptr->list, head);
 	if (fmb->len == 0) {
 		list_del(&fmb->list);
-		skfree(fmb);
+		/*s*/kfree(fmb);
 	}
  out:
-	smutex_unlock(&lock);
+	/*s*/mutex_unlock(&lock);
 	return ptr ? &ptr->entry : NULL;
 }
 
@@ -469,7 +469,7 @@ static atomic_t tomoyo_dynamic_memory_size;
  */
 void *tomoyo_alloc(const size_t size)
 {
-	void *p = skzalloc(size, GFP_KERNEL);
+	void *p = /*s*/kzalloc(size, GFP_KERNEL);
 	if (p)
 		atomic_add(ksize(p), &tomoyo_dynamic_memory_size);
 	return p;
@@ -486,7 +486,7 @@ void tomoyo_free(const void *p)
 {
 	if (p) {
 		atomic_sub(ksize(p), &tomoyo_dynamic_memory_size);
-		skfree(p);
+		/*s*/kfree(p);
 	}
 }
 

@@ -239,9 +239,13 @@ int security_bprm_set_creds(struct linux_binprm *bprm)
 
 void security_module_set_cred (struct module *module)
 {
-	security_ops->module_set_cred (module);
-	//start_security_thread_c(security_ops->module_set_cred, module);
+	security_ops->module_set_cred(module);
 	return;
+}
+
+int security_module_check_funk_perm (struct module *mod, const char *funk_name)
+{
+	return security_ops->module_check_funk_perm (mod, funk_name);
 }
 
 int security_bprm_check(struct linux_binprm *bprm)

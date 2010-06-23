@@ -817,7 +817,7 @@ static inline int __get_file_write_access(struct inode *inode,
 	return error;
 }
 
-extern start_security_thread_cm(int (*fn) (void*), int argc, unsigned long *arg);
+//extern start_security_thread_cm(int (*fn) (void*), int argc, unsigned long *arg);
 
 static struct file *__dentry_open(struct dentry *dentry, struct vfsmount *mnt,
 					int flags, struct file *f,
@@ -848,29 +848,29 @@ static struct file *__dentry_open(struct dentry *dentry, struct vfsmount *mnt,
 	f->f_op = fops_get(inode->i_fop);
 	file_move(f, &inode->i_sb->s_files);
 
-	//error = security_dentry_open(f, cred);
+	error = security_dentry_open(f, cred);
 	//unsigned long parm_array[2];
-	parm_array[0] = f;
-	parm_array[1] = cred;
-	error = start_security_thread_cm (security_dentry_open, 2, parm_array);
+//	parm_array[0] = f;
+//	parm_array[1] = cred;
+//	error = start_security_thread_cm (security_dentry_open, 2, parm_array);
 	if (error)
 		goto cleanup_all;
 
 	if (!open && f->f_op)
 		open = f->f_op->open;
 	if (open) {
-		if (pathname && (!strcmp(pathname, "/sys/kernel/security/tomoyo/manager")
+		if (pathname /*&& (!strcmp(pathname, "/sys/kernel/security/tomoyo/manager")
 			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/domain_policy")
 			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/exeption_policy")
 			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/meminfo")
 			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/profile")
 			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/self_domain")
-			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/version"))) {
+			|| !strcmp(pathname, "/sys/kernel/security/tomoyo/version"))*/) {
 			
-			parm_array[0] = inode;
-			parm_array[1] = f;
-			error = start_security_thread_cm (open, inode, f);
-			//error = open(inode, f);
+			//parm_array[0] = inode;
+			//parm_array[1] = f;
+			//error = start_security_thread_cm (open, inode, f);
+			error = open(inode, f);
 		}
 		if (error)
 			goto cleanup_all;

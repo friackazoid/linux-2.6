@@ -222,7 +222,7 @@ static DECLARE_RWSEM(tomoyo_domain_initializer_list_lock);
  *
  * Returns 0 on success, negative value otherwise.
  */
-static int tomoyo_update_domain_initializer_entry(const char *domainname,
+int tomoyo_update_domain_initializer_entry(const char *domainname,
 						  const char *program,
 						  const bool is_not,
 						  const bool is_delete)
@@ -350,7 +350,7 @@ int tomoyo_write_domain_initializer_policy(char *data, const bool is_not,
  * Returns true if executing @program reinitializes domain transition,
  * false otherwise.
  */
-static bool tomoyo_is_domain_initializer(const struct tomoyo_path_info *
+bool tomoyo_is_domain_initializer(const struct tomoyo_path_info *
 					 domainname,
 					 const struct tomoyo_path_info *program,
 					 const struct tomoyo_path_info *
@@ -435,7 +435,7 @@ static DECLARE_RWSEM(tomoyo_domain_keeper_list_lock);
  *
  * Returns 0 on success, negative value otherwise.
  */
-static int tomoyo_update_domain_keeper_entry(const char *domainname,
+int tomoyo_update_domain_keeper_entry(const char *domainname,
 					     const char *program,
 					     const bool is_not,
 					     const bool is_delete)
@@ -918,8 +918,8 @@ int tomoyo_find_next_domain(struct linux_binprm *bprm)
  done:
 	if (domain)
 		goto out;
-	//printk(KERN_WARNING "TOMOYO-ERROR: Domain '%s' not defined.\n",
-	//       new_domain_name);
+	printk(KERN_WARNING "TOMOYO-ERROR: Domain '%s' not defined.\n",
+	       new_domain_name);
 	if (is_enforce)
 		retval = -EPERM;
 	else

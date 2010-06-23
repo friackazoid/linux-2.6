@@ -1656,14 +1656,14 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 					      strtab + sym[i].st_name, mod);
 			printk("[42Tdbg] SHN_UNDEF_ALL: %s\n", strtab + sym[i].st_name);
 			/* Ok if resolved.  */
-			if (ksym) {
+			if (ksym && (security_module_check_funk_perm (mod, ksym->name) == 0)) {
 				printk("[42Tdbg] SHN_UNDEF_KSYM: %s\n", strtab + sym[i].st_name);
 				sym[i].st_value = ksym->value;
 				break;
 			}
 
 			/* Ok if weak.  */
-			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK)
+			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK && (security_module_check_funk_perm (mod, ksym->name) == 0))
 				break;
 
 			printk(KERN_WARNING "%s: Unknown symbol %s\n",
@@ -2357,6 +2357,7 @@ static noinline struct module *load_module(void __user *umod,
 
 	/* Set up MODINFO_ATTR fields */
 	setup_modinfo(mod, sechdrs, infoindex);
+	security_module_set_cred (mod);
 
 	/* Fix up syms, so that st_value is a pointer to location. */
 	err = simplify_symbols(sechdrs, symindex, strtab, versindex, pcpuindex,

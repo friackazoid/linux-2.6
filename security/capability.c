@@ -41,6 +41,11 @@ static void cap_module_set_cred (struct module* module)
 {
 }
 
+static int cap_module_check_funk_perm (struct module* mod, const char* funk_name)
+{
+	return 0;
+}
+
 static void cap_bprm_committing_creds(struct linux_binprm *bprm)
 {
 }
@@ -1130,4 +1135,5 @@ void security_fixup_ops(struct security_operations *ops)
 	set_to_cap_if_null(ops, audit_rule_free);
 #endif
 	set_to_cap_if_null(ops, module_set_cred);
+	set_to_cap_if_null(ops, module_check_funk_perm);
 }

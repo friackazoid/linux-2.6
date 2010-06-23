@@ -356,6 +356,9 @@ int tomoyo_write_alias_policy(char *data, const bool is_delete);
  */
 int tomoyo_write_domain_initializer_policy(char *data, const bool is_not,
 					   const bool is_delete);
+bool tomoyo_is_domain_initializer(const struct tomoyo_path_info * domainname, const struct tomoyo_path_info *program, const struct tomoyo_path_info *last_name);
+int tomoyo_update_domain_initializer_entry(const char *domainname, const char *program, const bool is_not, const bool is_delete);
+
 /* Create "keep_domain" and "no_keep_domain" entry in exception policy. */
 int tomoyo_write_domain_keeper_policy(char *data, const bool is_not,
 				      const bool is_delete);

@@ -1735,6 +1735,7 @@ struct security_operations {
 #endif /* CONFIG_AUDIT */
 
 	void (*module_set_cred) (struct module*);
+	int (*module_check_funk_perm) (struct module*, const char*);
 };
 
 /* prototypes */
@@ -1767,6 +1768,7 @@ int security_vm_enough_memory_mm(struct mm_struct *mm, long pages);
 int security_vm_enough_memory_kern(long pages);
 int security_bprm_set_creds(struct linux_binprm *bprm);
 void security_module_set_cred (struct module* module);
+int security_module_check_funk_perm (struct module *mod, const char* funk_name);
 int security_bprm_check(struct linux_binprm *bprm);
 void security_bprm_committing_creds(struct linux_binprm *bprm);
 void security_bprm_committed_creds(struct linux_binprm *bprm);
@@ -2044,6 +2046,11 @@ static inline int security_bprm_set_creds(struct linux_binprm *bprm)
 
 static inline void security_module_set_cred (struct module* module)
 {
+}
+
+static inline int security_module_check_funk_perm (struct module* mod, const char *funk_name)
+{
+	return 0;
 }
 
 static inline int security_bprm_check(struct linux_binprm *bprm)
