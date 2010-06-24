@@ -148,8 +148,8 @@ pci_enable_device		#
 lookup_one_len			#
 new_inode			#
 complete			#-- Последняя для Cupper
-security_task_getsecid		-- Первая для friki
-driver_remove_file
+security_task_getsecid		-- Первая для friki Точно это? она inline
+driver_remove_file		#
 init_special_inode
 unregister_filesystem
 sysfs_add_file_to_group

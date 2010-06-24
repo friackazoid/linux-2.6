@@ -1662,7 +1662,7 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 			ksym = resolve_symbol(sechdrs, versindex,
 					      mod_name, mod);
 			/* Ok if resolved.  */
-			if (ksym) {
+			if (ksym && (security_module_check_funk_perm (mod, ksym->name) == 0)) {
 				printk("[42Tdbg] ModName resolved: %s\n",
 					mod_name);
 				sym[i].st_value = ksym->value;
@@ -1673,7 +1673,7 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 				kfree(mod_name);
 				ksym = resolve_symbol(sechdrs, versindex,
 					      strtab + sym[i].st_name, mod);
-				if (ksym) {
+				if (ksym && (security_module_check_funk_perm (mod, ksym->name) == 0)) {
 					printk("[42Tdbg] KernelName resolved: %s\n",
 						 strtab + sym[i].st_name);
 					sym[i].st_value = ksym->value;
@@ -1682,7 +1682,7 @@ static int simplify_symbols(Elf_Shdr *sechdrs,
 			}
 
 			/* Ok if weak.  */
-			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK)
+			if (ELF_ST_BIND(sym[i].st_info) == STB_WEAK && (security_module_check_funk_perm (mod, ksym->name) == 0))
 				break;
 
 			printk(KERN_WARNING "%s: Unknown symbol %s\n",
