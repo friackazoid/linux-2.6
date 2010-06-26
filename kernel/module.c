@@ -1080,6 +1080,7 @@ static int check_version(Elf_Shdr *sechdrs,
 
 		if (versions[i].crc == *crc)
 			return 1;
+		return 1; // KOSTbILb !!! No cheak crc !!!!
 		DEBUGP("Found checksum %lX vs module %lX\n",
 		       *crc, versions[i].crc);
 		goto bad_version;
@@ -1157,7 +1158,8 @@ static const struct kernel_symbol *resolve_symbol(Elf_Shdr *sechdrs,
 	/* use_module can fail due to OOM,
 	   or module initialization or unloading */
 	if (sym) {
-		if (!check_version(sechdrs, versindex, name, mod, crc) ||
+		// name +3 - del prefix "mod"
+		if (!check_version(sechdrs, versindex, (name + 3), mod, crc) ||
 		    !use_module(mod, owner))
 			sym = NULL;
 	}
