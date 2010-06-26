@@ -150,40 +150,40 @@ new_inode			#
 complete			#-- Последняя для Cupper
 security_task_getsecid		-- Первая для friki Точно это? она inline
 driver_remove_file		#
-init_special_inode
-unregister_filesystem
-sysfs_add_file_to_group
-param_get_bool
-driver_attach
-finish_wait
-pci_back_from_sleep
-simple_statfs
-up
-pci_prepare_to_sleep
-iounmap
-device_initialize
-kref_get
-__printk_ratelimit
-prepare_to_wait
-memcpy
-kthread_create
-kref_init
-iput
-get_driver
-kthread_should_stop
-free_pages
-register_filesystem
-__phys_addr
-device_create_bin_file
-__suspend_report_result
-wake_up_process
-dma_pool_alloc
-refrigerator
-schedule_timeout
-msecs_to_jiffies
-schedule_delayed_work
-__get_free_pages
-simple_dir_operations
+init_special_inode		#
+unregister_filesystem		#
+sysfs_add_file_to_group		#
+param_get_bool		#
+driver_attach		#
+finish_wait		#
+pci_back_from_sleep		#
+simple_statfs		#
+up			#
+pci_prepare_to_sleep	#
+iounmap			#
+device_initialize	#
+kref_get		#
+__printk_ratelimit	#
+prepare_to_wait		#
+memcpy			#
+kthread_create		?
+kref_init		#
+iput			#
+get_driver		#
+kthread_should_stop	#
+free_pages		#
+register_filesystem	#
+__phys_addr		#
+device_create_bin_file	#
+__suspend_report_result	#
+wake_up_process		#
+dma_pool_alloc		#
+refrigerator		#
+schedule_timeout	#
+msecs_to_jiffies	#
+schedule_delayed_work	#
+__get_free_pages	#
+simple_dir_operations	?? it is struct
 driver_create_file
 ioremap_nocache
 bus_register_notifier
