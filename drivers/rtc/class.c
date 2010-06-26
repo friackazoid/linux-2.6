@@ -213,7 +213,7 @@ SYSCALL_DEFINE4(modrtc_device_register, const char, *name, struct device, *dev,
 					const struct rtc_class_ops, *ops,
 					struct module, *owner)
 {
-	return modrtc_device_register(name, dev, ops, owner);
+	return rtc_device_register(name, dev, ops, owner);
 }
 
 
