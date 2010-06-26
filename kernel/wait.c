@@ -143,6 +143,31 @@ prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state)
 }
 EXPORT_SYMBOL(prepare_to_wait);
 
+void modprepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+		 "\tmovl %2, %%edx\n"
+	         "\tmovl $"STR(__SR_modprepare_to_wait)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(q), "m"(wait), "m"(state): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modprepare_to_wait);
+
+SYSCALL_DEFINE3 (modprepare_to_wait, wait_queue_head_t*, q, wait_queue_t*, wait, int, state)
+{
+        prepare_to_wait(q, wait, state);
+	return 0;
+}
+
+
 void
 prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state)
 {
@@ -191,6 +216,29 @@ void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 	}
 }
 EXPORT_SYMBOL(finish_wait);
+
+void modfinish_wait(wait_queue_head_t *q, wait_queue_t *wait)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+	         "\tmovl $"STR(__SR_modfinish_wait)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(q), "m"(wait): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modfinish_wait);
+
+SYSCALL_DEFINE2 (modfinish_wait, wait_queue_head_t *, q, wait_queue_t*, wait)
+{
+        finish_wait(q, wait);
+	return 0;
+}
 
 /*
  * abort_exclusive_wait - abort exclusive waiting in a queue

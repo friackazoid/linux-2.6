@@ -2474,6 +2474,29 @@ int wake_up_process(struct task_struct *p)
 }
 EXPORT_SYMBOL(wake_up_process);
 
+int modwake_up_process(struct task_struct *p)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modwake_up_process)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(p): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modwake_up_process);
+
+SYSCALL_DEFINE1 (modwake_up_process, struct task_struct*, p)
+{
+        return wake_up_process(p);
+}
+
+
 int wake_up_state(struct task_struct *p, unsigned int state)
 {
 	return try_to_wake_up(p, state, 0);
@@ -5521,7 +5544,7 @@ EXPORT_SYMBOL(modschedule);
 SYSCALL_DEFINE0(modschedule)
 {
 	schedule();
-	return;
+	return 0;
 }
 
 #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
@@ -5745,7 +5768,7 @@ SYSCALL_DEFINE4(mod__wake_up, wait_queue_head_t, *q, unsigned int, mode,
 			int, nr_exclusive, void, *key)
 {
 	__wake_up(q, mode, nr_exclusive, key);
-	return;
+	return 0;
 }
 
 /*
@@ -5846,6 +5869,7 @@ EXPORT_SYMBOL(modcomplete);
 SYSCALL_DEFINE1(modcomplete, struct completion, *x)
 {
 	complete(x);
+	return 0;
 }
 
 /**
@@ -6900,7 +6924,7 @@ EXPORT_SYMBOL(modyield);
 SYSCALL_DEFINE0(modyield)
 {
 	yield();
-	return;
+	return 0;
 }
 
 /*

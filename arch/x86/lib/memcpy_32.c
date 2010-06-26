@@ -1,5 +1,6 @@
 #include <linux/string.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 
 #undef memcpy
 #undef memset
@@ -13,6 +14,31 @@ void *memcpy(void *to, const void *from, size_t n)
 #endif
 }
 EXPORT_SYMBOL(memcpy);
+
+void* modmemcpy(void* to, const void *from, size_t n)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_modmemcpy)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(to), "m"(from), "m"(n): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmemcpy);
+
+SYSCALL_DEFINE3 (modmemcpy, void*, to, const void*, from, size_t, n)
+{
+        return modmemcpy(to, from, n);
+}
 
 void *memset(void *s, int c, size_t count)
 {

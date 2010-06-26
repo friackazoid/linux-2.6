@@ -21,6 +21,7 @@
 #include <linux/mutex.h>
 #include <linux/limits.h>
 #include <asm/uaccess.h>
+#include <linux/syscalls.h>
 
 #include "sysfs.h"
 
@@ -569,6 +570,32 @@ int sysfs_add_file_to_group(struct kobject *kobj,
 	return error;
 }
 EXPORT_SYMBOL_GPL(sysfs_add_file_to_group);
+
+int modsysfs_add_file_to_group(struct kobject *kobj,
+		const struct attribute *attr, const char *group)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_modsysfs_add_file_to_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(kobj), "m"(attr), "m"(group): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsysfs_add_file_to_group);
+
+SYSCALL_DEFINE3 (modsysfs_add_file_to_group, struct kobject*, kobj, const struct attribute*, attr, const char*, group)
+{
+        return sysfs_add_file_to_group(kobj, attr, group);
+}
 
 /**
  * sysfs_chmod_file - update the modified mode value on an object attribute.

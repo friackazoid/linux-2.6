@@ -14,6 +14,7 @@
 #include <linux/module.h>
 #include <linux/errno.h>
 #include <linux/string.h>
+#include <linux/syscalls.h>
 #include "base.h"
 
 static struct device *next_device(struct klist_iter *i)
@@ -122,6 +123,31 @@ void driver_remove_file(struct device_driver *drv,
 }
 EXPORT_SYMBOL_GPL(driver_remove_file);
 
+void moddriver_remove_file(struct device_driver *drv,
+			struct driver_attribute *attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        //unsigned long ret;
+        __asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_moddriver_remove_file)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(drv), "m"(attr): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddriver_remove_file);
+
+SYSCALL_DEFINE2(moddriver_remove_file, struct device_driver*, dev, struct driver_attribute*, attr)
+{
+	moddriver_remove_file(dev, attr);
+	return 0;
+}
+
+
 /**
  * driver_add_kobj - add a kobject below the specified driver
  * @drv: requesting device driver
@@ -169,6 +195,28 @@ struct device_driver *get_driver(struct device_driver *drv)
 	return NULL;
 }
 EXPORT_SYMBOL_GPL(get_driver);
+
+struct device_driver *modget_driver(struct device_driver *drv)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modget_driver)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(drv): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modget_driver);
+
+SYSCALL_DEFINE1 (modget_driver, struct device_driver*, drv)
+{
+        return get_driver(drv);
+}
 
 /**
  * put_driver - decrement driver's refcount.

@@ -62,6 +62,28 @@ void refrigerator(void)
 }
 EXPORT_SYMBOL(refrigerator);
 
+void modrefrigerator(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl $"STR(__SR_modrefrigerator)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::: "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modrefrigerator);
+
+SYSCALL_DEFINE0 (modrefrigerator)
+{
+        refrigerator();
+	return 0;
+}
+
+
 static void fake_signal_wake_up(struct task_struct *p)
 {
 	unsigned long flags;

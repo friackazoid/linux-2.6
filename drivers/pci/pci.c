@@ -1414,6 +1414,29 @@ int pci_prepare_to_sleep(struct pci_dev *dev)
 	return error;
 }
 
+int modpci_prepare_to_sleep(struct pci_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modpci_prepare_to_sleep)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(dev): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpci_prepare_to_sleep);
+
+SYSCALL_DEFINE1 (modpci_prepare_to_sleep, struct pci_dev*, dev)
+{
+        return pci_prepare_to_sleep(dev);
+}
+
+
 /**
  * pci_back_from_sleep - turn PCI device on during system-wide transition into working state
  * @dev: Device to handle.
@@ -1424,6 +1447,28 @@ int pci_back_from_sleep(struct pci_dev *dev)
 {
 	pci_enable_wake(dev, PCI_D0, false);
 	return pci_set_power_state(dev, PCI_D0);
+}
+
+int modpci_back_from_sleep(struct pci_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modpci_back_from_sleep)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret): "m"(dev): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpci_back_from_sleep);
+
+SYSCALL_DEFINE1 (modpci_back_from_sleep, struct pci_dev*, dev)
+{
+        return pci_back_from_sleep(dev);
 }
 
 /**

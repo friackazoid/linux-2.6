@@ -303,6 +303,29 @@ int driver_attach(struct device_driver *drv)
 }
 EXPORT_SYMBOL_GPL(driver_attach);
 
+int moddriver_attach(struct device_driver *drv)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddriver_attach)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(drv): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddriver_attach);
+
+SYSCALL_DEFINE1(moddriver_attach, struct device_driver*, drv)
+{
+        return driver_attach(drv);
+}
+
 /*
  * __device_release_driver() must be called with @dev->sem held.
  * When called for a USB interface, @dev->parent->sem must be held as well.

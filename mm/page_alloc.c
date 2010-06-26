@@ -52,6 +52,7 @@
 
 #include <asm/tlbflush.h>
 #include <asm/div64.h>
+#include <linux/syscalls.h>
 #include "internal.h"
 
 /*
@@ -2024,6 +2025,30 @@ void free_pages(unsigned long addr, unsigned int order)
 }
 
 EXPORT_SYMBOL(free_pages);
+
+void modfree_pages(unsigned long addr, unsigned int order)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+	         "\tmovl $"STR(__SR_modfree_pages)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(addr), "m"(order): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modfree_pages);
+
+SYSCALL_DEFINE2 (modfree_pages, unsigned long, addr, unsigned int, order)
+{
+        free_pages(addr, order);
+	return 0;
+}
+
 
 /**
  * alloc_pages_exact - allocate an exact number physically-contiguous pages.

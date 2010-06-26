@@ -25,6 +25,7 @@
 #include <linux/resume-trace.h>
 #include <linux/rwsem.h>
 #include <linux/interrupt.h>
+#include <linux/syscalls.h>
 
 #include "../base.h"
 #include "power.h"
@@ -827,3 +828,30 @@ void __suspend_report_result(const char *function, void *fn, int ret)
 		printk(KERN_ERR "%s(): %pF returns %d\n", function, fn, ret);
 }
 EXPORT_SYMBOL_GPL(__suspend_report_result);
+
+void mod__suspend_report_result(const char *function, void *fn, int ret)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+		 "\tmovl %2, %%edx\n"
+	         "\tmovl $"STR(__SR_mod__suspend_report_result)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 ::"m"(function), "m"(fn), "m"(ret): "edx", "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__suspend_report_result);
+
+SYSCALL_DEFINE3 (mod__suspend_report_result, const char*, function, void*, fn, int, ret)
+{
+        __suspend_report_result(function, fn, ret);
+	return 0;
+}
+
+

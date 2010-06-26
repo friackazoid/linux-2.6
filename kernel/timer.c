@@ -599,7 +599,7 @@ SYSCALL_DEFINE3(modinit_timer_key, struct timer_list, *timer,
 		    struct lock_class_key, *key)
 {
 	init_timer_key(timer, name, key);
-	return;
+	return 0;
 }
 
 void init_timer_deferrable_key(struct timer_list *timer,
@@ -836,7 +836,7 @@ EXPORT_SYMBOL(modadd_timer);
 SYSCALL_DEFINE1(modadd_timer, struct timer_list, *timer)
 {
 	add_timer(timer);
-	return;
+	return 0;
 }
 
 /**
@@ -1467,6 +1467,29 @@ signed long __sched schedule_timeout(signed long timeout)
 	return timeout < 0 ? 0 : timeout;
 }
 EXPORT_SYMBOL(schedule_timeout);
+
+signed long __sched modschedule_timeout(signed long timeout)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modschedule_timeout)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(timeout): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modschedule_timeout);
+
+SYSCALL_DEFINE1 (modschedule_timeout, signed long, timeout)
+{
+        return schedule_timeout(timeout);
+}
+
 
 /*
  * We can use __set_current_state() here because schedule_timeout() calls

@@ -1360,6 +1360,28 @@ void iput(struct inode *inode)
 }
 EXPORT_SYMBOL(iput);
 
+void modiput(struct inode *inode)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modiput)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(inode): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modiput);
+
+SYSCALL_DEFINE1 (modiput, struct inode*, inode)
+{
+        iput(inode);
+	return 0;
+}
+
 /**
  *	bmap	- find a block number in a file
  *	@inode: inode of file
@@ -1636,3 +1658,29 @@ void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
 				  inode->i_ino);
 }
 EXPORT_SYMBOL(init_special_inode);
+
+void modinit_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        //unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+		 "\tmovl %2, %%edx\n"
+	         "\tmovl $"STR(__SR_modinit_special_inode)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(inode), "m"(mode), "m"(rdev): "edx", "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modinit_special_inode);
+
+SYSCALL_DEFINE3(modinit_special_inode, struct inode*, inode, umode_t, mode, dev_t, rdev)
+{
+        init_special_inode(inode, mode, rdev);
+
+	return 0;
+}
+

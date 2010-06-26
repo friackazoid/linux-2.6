@@ -1405,6 +1405,29 @@ int __printk_ratelimit(const char *func)
 }
 EXPORT_SYMBOL(__printk_ratelimit);
 
+int mod__printk_ratelimit(const char *func)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_mod__printk_ratelimit)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(func): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__printk_ratelimit);
+
+SYSCALL_DEFINE1(mod__printk_ratelimit, const char*, func)
+{
+        return __printk_ratelimit(func);
+}
+
+
 /**
  * printk_timed_ratelimit - caller-controlled printk ratelimiting
  * @caller_jiffies: pointer to caller's state

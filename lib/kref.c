@@ -13,6 +13,7 @@
 
 #include <linux/kref.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 
 /**
  * kref_set - initialize object and set refcount to requested number.
@@ -34,6 +35,28 @@ void kref_init(struct kref *kref)
 	kref_set(kref, 1);
 }
 
+void modkref_init(struct kref *kref)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modkref_init)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(kref): "ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkref_init);
+
+SYSCALL_DEFINE1 (modkref_init, struct kref*, kref)
+{
+       kref_init(kref);
+       return 0;
+}
+
+
 /**
  * kref_get - increment refcount for object.
  * @kref: object.
@@ -44,6 +67,30 @@ void kref_get(struct kref *kref)
 	atomic_inc(&kref->refcount);
 	smp_mb__after_atomic_inc();
 }
+
+void modkref_get(struct kref *kref)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modkref_get)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(kref): "ebx", "eax");
+	return ;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkref_get);
+
+SYSCALL_DEFINE1 (modkref_get, struct kref*, kref)
+{
+        kref_get(kref);
+	return 0;
+}
+
 
 /**
  * kref_put - decrement refcount for object.

@@ -380,6 +380,31 @@ void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
 }
 EXPORT_SYMBOL(dma_pool_alloc);
 
+void *moddma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
+		     dma_addr_t *handle)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_moddma_pool_alloc)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(pool), "m"(mem_flags), "m"(handle): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddma_pool_alloc);
+
+SYSCALL_DEFINE3 (moddma_pool_alloc, struct dma_pool*, pool, gfp_t, mem_flags, dma_addr_t*, handle)
+{
+        return dma_pool_alloc(pool, mem_flags, handle);
+}
+
 static struct dma_page *pool_find_page(struct dma_pool *pool, dma_addr_t dma)
 {
 	unsigned long flags;

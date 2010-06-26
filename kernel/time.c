@@ -498,6 +498,29 @@ unsigned long msecs_to_jiffies(const unsigned int m)
 }
 EXPORT_SYMBOL(msecs_to_jiffies);
 
+unsigned long modmsecs_to_jiffies(const unsigned int m)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modmsecs_to_jiffies)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(m): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmsecs_to_jiffies);
+
+SYSCALL_DEFINE1 (modmsecs_to_jiffies, const unsigned int, m)
+{
+        return msecs_to_jiffies(m);
+}
+
+
 unsigned long usecs_to_jiffies(const unsigned int u)
 {
 	if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))

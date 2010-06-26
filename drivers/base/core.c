@@ -525,7 +525,7 @@ EXPORT_SYMBOL(moddevice_remove_file);
 SYSCALL_DEFINE2(moddevice_remove_file, struct device, *dev, struct device_attribute, *attr)
 {
 	device_remove_file(dev, attr);
-	return;
+	return 0;
 }
 
 /**
@@ -541,6 +541,29 @@ int device_create_bin_file(struct device *dev, struct bin_attribute *attr)
 	return error;
 }
 EXPORT_SYMBOL_GPL(device_create_bin_file);
+
+int moddevice_create_bin_file(struct device *dev, struct bin_attribute *attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned int ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_moddevice_create_bin_file)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m" (ret):"m"(dev), "m"(attr) :"ebx", "ecx", "eax");
+	return 0;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_create_bin_file);
+SYSCALL_DEFINE2(moddevice_create_bin_file, struct device, *dev, struct device_attribute, *attr)
+{
+	return device_create_bin_file(dev, attr);
+}
+
 
 /**
  * device_remove_bin_file - remove sysfs binary attribute file
@@ -630,6 +653,29 @@ void device_initialize(struct device *dev)
 	device_pm_init(dev);
 	set_dev_node(dev, -1);
 }
+
+void moddevice_initialize(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modsysfs_add_file_to_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(dev): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_initialize);
+
+SYSCALL_DEFINE1 (moddevice_initialize, struct device*, dev)
+{
+	device_initialize(dev);
+	return 0;
+}
+
 
 #ifdef CONFIG_SYSFS_DEPRECATED
 static struct kobject *get_device_parent(struct device *dev,
@@ -1201,7 +1247,7 @@ EXPORT_SYMBOL(modput_device);
 SYSCALL_DEFINE1(modput_device, struct device, *dev)
 {
 	put_device(dev);
-	return;
+	return 0;
 }
 
 /**
@@ -1307,7 +1353,7 @@ EXPORT_SYMBOL(moddevice_unregister);
 SYSCALL_DEFINE1(moddevice_unregister, struct device, *dev)
 {
 	device_unregister(dev);
-	return;
+	return 0;
 }
 
 static struct device *next_device(struct klist_iter *i)

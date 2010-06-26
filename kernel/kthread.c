@@ -54,6 +54,28 @@ int kthread_should_stop(void)
 }
 EXPORT_SYMBOL(kthread_should_stop);
 
+int modkthread_should_stop(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl $"STR(__SR_modkthread_should_stop)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):: "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkthread_should_stop);
+
+SYSCALL_DEFINE0 (modkthread_should_stop)
+{
+        return kthread_should_stop();
+}
+
+
 static int kthread(void *_create)
 {
 	/* Copy data: it's on kthread's stack */
@@ -169,6 +191,15 @@ struct task_struct *kthread_create(int (*threadfn)(void *data),
 	return create.result;
 }
 EXPORT_SYMBOL(kthread_create);
+
+struct task_struct* modkthread_create(int (*threadfn)(void *data),
+				   void *data,
+				   const char namefmt[],
+				   ...)
+{
+	printk ("[*** 42Team] Not implemented yet. Unknown param count.\n");
+}
+EXPORT_SYMBOL(modkthread_create);
 
 /**
  * kthread_stop - stop a thread created by kthread_create().

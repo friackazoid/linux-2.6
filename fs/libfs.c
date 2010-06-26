@@ -11,6 +11,7 @@
 #include <linux/exportfs.h>
 #include <linux/writeback.h>
 #include <linux/buffer_head.h>
+#include <linux/syscalls.h>
 
 #include <asm/uaccess.h>
 
@@ -30,6 +31,30 @@ int simple_statfs(struct dentry *dentry, struct kstatfs *buf)
 	buf->f_namelen = NAME_MAX;
 	return 0;
 }
+
+int modsimple_statfs(struct dentry *dentry, struct kstatfs *buf)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modsimple_statfs)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(dentry), "m"(buf): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsimple_statfs);
+
+SYSCALL_DEFINE2 (modsimple_statfs, struct dentry*, dentry, struct kstatfs*, buf)
+{
+        return simple_statfs(dentry, buf);
+}
+
 
 /*
  * Retaining negative dentries for an in-memory filesystem just wastes

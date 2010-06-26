@@ -1,6 +1,7 @@
 #include <linux/mmdebug.h>
 #include <linux/module.h>
 #include <linux/mm.h>
+#include <linux/syscalls.h>
 
 #include <asm/page.h>
 
@@ -53,6 +54,32 @@ unsigned long __phys_addr(unsigned long x)
 	return x - PAGE_OFFSET;
 }
 EXPORT_SYMBOL(__phys_addr);
+
+/*
+ * This for 32 bit arch
+ */
+unsigned long mod__phys_addr(unsigned long x)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_mod__phys_addr)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(x): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__phys_addr);
+
+SYSCALL_DEFINE1 (mod__phys_addr, unsigned long, x)
+{
+        return __phys_addr(x);
+}
+
 #endif
 
 bool __virt_addr_valid(unsigned long x)

@@ -87,6 +87,29 @@ int register_filesystem(struct file_system_type * fs)
 
 EXPORT_SYMBOL(register_filesystem);
 
+int modregister_filesystem(struct file_system_type * fs)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modregister_filesystem)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(fs): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modregister_filesystem);
+
+SYSCALL_DEFINE1 (modregister_filesystem, struct file_system_type*, fs)
+{
+        return register_filesystem(fs);
+}
+
+
 /**
  *	unregister_filesystem - unregister a file system
  *	@fs: filesystem to unregister
@@ -119,6 +142,28 @@ int unregister_filesystem(struct file_system_type * fs)
 }
 
 EXPORT_SYMBOL(unregister_filesystem);
+
+int modunregister_filesystem(struct file_system_type * fs)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modunregister_filesystem)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(fs): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modunregister_filesystem);
+
+SYSCALL_DEFINE1(modunregister_filesystem, struct file_system_type*, fs)
+{
+        return unregister_filesystem(fs);
+}
 
 static int fs_index(const char __user * __name)
 {

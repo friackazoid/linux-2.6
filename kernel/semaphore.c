@@ -32,6 +32,7 @@
 #include <linux/semaphore.h>
 #include <linux/spinlock.h>
 #include <linux/ftrace.h>
+#include <linux/syscalls.h>
 
 static noinline void __down(struct semaphore *sem);
 static noinline int __down_interruptible(struct semaphore *sem);
@@ -187,6 +188,29 @@ void up(struct semaphore *sem)
 	spin_unlock_irqrestore(&sem->lock, flags);
 }
 EXPORT_SYMBOL(up);
+
+void modup(struct semaphore *sem)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modup)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(sem): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modup);
+
+SYSCALL_DEFINE1 (modup, struct semaphore*, sem)
+{
+        up(sem);
+	return 0;
+}
 
 /* Functions for the contended case */
 
