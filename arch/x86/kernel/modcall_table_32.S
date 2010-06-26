@@ -289,4 +289,4 @@ ENTRY(mod_call_table)
 	.long sys_moddevice_remove_bin_file
 	.long sys_modsimple_pin_fs
 	.long sys_modbus_register
-	.long sys_mod__unregister_chrdev*/
+	.long sys_mod__unregister_chrdev
