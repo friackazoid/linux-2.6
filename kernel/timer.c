@@ -776,6 +776,32 @@ int mod_timer(struct timer_list *timer, unsigned long expires)
 }
 EXPORT_SYMBOL(mod_timer);
 
+
+int modmod_timer(struct timer_list *timer, unsigned long expires)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modmod_timer)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(timer), "m"(expires): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmod_timer);
+
+SYSCALL_DEFINE2 (modmod_timer, struct timer_list*, timer, unsigned long, expires)
+{
+        return mod_timer(timer, expires);
+}
+
+
+
 /**
  * mod_timer_pinned - modify a timer's timeout
  * @timer: the timer to be modified
@@ -797,7 +823,7 @@ int mod_timer_pinned(struct timer_list *timer, unsigned long expires)
 	return __mod_timer(timer, expires, false, TIMER_PINNED);
 }
 EXPORT_SYMBOL(mod_timer_pinned);
-
+/*
 int modmod_timer_pinned(struct timer_list *timer, unsigned long expires)
 {
 #define __STR(X) #X
@@ -820,7 +846,7 @@ SYSCALL_DEFINE2 (modmod_timer_pinned, struct timer_list*, timer, unsigned long, 
 {
         return mod_timer_pinned(timer, expires);
 }
-
+*/
 /**
  * add_timer - start a timer
  * @timer: the timer to be added

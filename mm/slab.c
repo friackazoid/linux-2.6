@@ -115,7 +115,7 @@
 #include	<linux/reciprocal_div.h>
 #include	<linux/debugobjects.h>
 #include	<linux/kmemcheck.h>
-#include	<linux/syscall.h>
+#include	<linux/syscalls.h>
 
 #include	<asm/cacheflush.h>
 #include	<asm/tlbflush.h>
