@@ -2193,6 +2193,28 @@ void dentry_unhash(struct dentry *dentry)
 	spin_unlock(&dcache_lock);
 }
 
+void moddentry_unhash(struct dentry *dentry)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddentry_unhash)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(dentry): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddentry_unhash);
+
+SYSCALL_DEFINE1 (moddentry_unhash, struct dentry*, dentry)
+{
+        dentry_unhash(dentry);
+	return 0;
+}
+
 int vfs_rmdir(struct inode *dir, struct dentry *dentry)
 {
 	int error = may_delete(dir, dentry, 1);

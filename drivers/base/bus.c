@@ -337,6 +337,35 @@ struct device *bus_find_device(struct bus_type *bus,
 }
 EXPORT_SYMBOL_GPL(bus_find_device);
 
+typedef match_f (int(*match) (struct device *dev, void *data));
+
+struct device *modbus_find_device(struct bus_type *bus,
+			       struct device *start, void *data,
+			       match_f mf)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl $"STR(__SR_modbus_find_device)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(bus), "m"(start), "m"(data), "m"(mf):"esi", "edx", "ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modbus_find_device);
+
+SYSCALL_DEFINE4(modbus_find_device, struct bus_type, *bus, struct device *, start, void*, data, match_f, mf)
+{
+	return bus_find_device(bus, start, data, mf);
+}
+
 static int match_name(struct device *dev, void *data)
 {
 	const char *name = data;
@@ -973,11 +1002,56 @@ void bus_unregister(struct bus_type *bus)
 }
 EXPORT_SYMBOL_GPL(bus_unregister);
 
+int modbus_unregister(struct bus_type *bus)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modbus_unregister)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(bus): "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modbus_unregister);
+SYSCALL_DEFINE1(modbus_unregister, struct bus_type, *bus)
+{
+	bus_unregister(bus);
+	return 0;
+}
+
 int bus_register_notifier(struct bus_type *bus, struct notifier_block *nb)
 {
 	return blocking_notifier_chain_register(&bus->p->bus_notifier, nb);
 }
 EXPORT_SYMBOL_GPL(bus_register_notifier);
+
+int modbus_register_notifier(struct bus_type *bus, struct notifier_block *nb)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl $"STR(__SR_modbus_unregister_notifier)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0"
+		:"=m" (ret):"m"(bus), "m"(nb):"ebx", "ecx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL_GPL(modbus_register_notifier);
+SYSCALL_DEFINE2(modbus_register_notifier, struct bus_type, *bus, struct notifier_block, *nb)
+{
+	return bus_register_notifier(bus, nb);
+}
+
 
 int bus_unregister_notifier(struct bus_type *bus, struct notifier_block *nb)
 {

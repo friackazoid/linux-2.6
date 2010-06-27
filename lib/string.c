@@ -23,6 +23,7 @@
 #include <linux/string.h>
 #include <linux/ctype.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 
 #ifndef __HAVE_ARCH_STRNICMP
 /**
@@ -324,6 +325,30 @@ char *strrchr(const char *s, int c)
        return NULL;
 }
 EXPORT_SYMBOL(strrchr);
+
+char *modstrrchr(const char *s, int c)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modstrrchr)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(s), "m"(c): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modstrrchr);
+
+SYSCALL_DEFINE2 (modstrrchr, const char*, s, int, c)
+{
+        return strrchr(s, c);
+}
+
 #endif
 
 #ifndef __HAVE_ARCH_STRNCHR
@@ -505,6 +530,30 @@ char *strsep(char **s, const char *ct)
 	return sbegin;
 }
 EXPORT_SYMBOL(strsep);
+
+char *modstrsep(char **s, const char *ct)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modstrsep)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(s), "m"(ct): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modstrsep);
+
+SYSCALL_DEFINE2 (modstrsep, char**, s, const char*, ct)
+{
+        return strsep(s, ct);
+}
+
 #endif
 
 /**

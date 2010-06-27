@@ -184,71 +184,71 @@ msecs_to_jiffies	#
 schedule_delayed_work	#
 __get_free_pages	#
 simple_dir_operations	?? it is struct
-driver_create_file
-ioremap_nocache
-bus_register_notifier
-strrchr
-synchronize_irq
-dma_alloc_from_coherent
-contig_page_data
-kill_pid_info_as_uid
-bus_unregister
-down_write
-up_write
-__create_workqueue_key
-bus_find_device
-device_add
-match_int
-dma_release_from_coherent
-dma_pool_free
-init_uts_ns
-mod_timer
-device_create
-put_driver
-down
-device_attach
-dentry_unhash
-destroy_workqueue
-dcache_lock
-warn_slowpath_null
-debugfs_remove
-strncpy					-- Последняя для friki
-param_set_bool				-- первая для v0land
-driver_unregister
-find_next_zero_bit
-d_alloc_root
-pci_power_names
-sysfs_remove_file_from_group
-sysfs_create_group
-kthread_stop
-sscanf
-down_trylock
-movable_zone
-_ctype
-device_del
-kill_litter_super
-device_bind_driver
-memset
-get_sb_single
-pci_set_master
-wait_for_completion
-d_delete
-kasprintf
-down_read
-kstrdup
-sysfs_remove_group
-_lock_kernel
-dma_pool_destroy
-debugfs_create_file
-param_set_int
-strsep
-cancel_delayed_work_sync
-x86_dma_fallback_dev
-sg_next
-__register_chrdev
-queue_work
-match_token
-__get_user_4
+driver_create_file	#
+ioremap_nocache		? inline
+bus_register_notifier	#
+strrchr			#
+synchronize_irq		#
+dma_alloc_from_coherent	#
+contig_page_data	? struct
+kill_pid_info_as_uid	#
+bus_unregister		#
+down_write		#
+up_write		#
+__create_workqueue_key	#
+bus_find_device		#
+device_add		#
+match_int		#
+dma_release_from_coherent #
+dma_pool_free		#
+init_uts_ns		? struct
+mod_timer		#
+device_create		? unknown param
+put_driver		#
+down			#
+device_attach		#
+dentry_unhash		#
+destroy_workqueue	#
+dcache_lock		? not funk
+warn_slowpath_null	#
+debugfs_remove		#
+strncpy			#		-- Последняя для friki
+param_set_bool		#		-- первая для v0land
+driver_unregister	#
+find_next_zero_bit	#
+d_alloc_root		#
+pci_power_names		# struct
+sysfs_remove_file_from_group	#
+sysfs_create_group	#
+kthread_stop		#
+sscanf			? unknown param
+down_trylock		#
+movable_zone		? symbol
+_ctype			? symbol
+device_del		#
+kill_litter_super	#
+device_bind_driver	#
+memset			? непонятно какую слишком много функций
+get_sb_single		#
+pci_set_master		#
+wait_for_completion	#
+d_delete		#
+kasprintf		# unknown para count
+down_read		#
+kstrdup			#
+sysfs_remove_group	#
+_lock_kernel		#
+dma_pool_destroy	#
+debugfs_create_file	#
+param_set_int		? экспорт функции есть а самой функции нет
+strsep			#
+cancel_delayed_work_sync	#
+x86_dma_fallback_dev	# struct
+sg_next			#
+__register_chrdev	#
+queue_work		#
+match_token		#
+__get_user_4		#
 device_destroy
 cancel_work_sync
 dput

@@ -5945,6 +5945,29 @@ void __sched wait_for_completion(struct completion *x)
 }
 EXPORT_SYMBOL(wait_for_completion);
 
+void __sched modwait_for_completion(struct completion *x)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modwait_for_completion)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(x): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modwait_for_completion);
+
+SYSCALL_DEFINE1 (modwait_for_completion, struct completion*, x)
+{
+        wait_for_completion(x);
+	return 0;
+}
+
+
 /**
  * wait_for_completion_timeout: - waits for completion of a task (w/timeout)
  * @x:  holds the state of this particular completion

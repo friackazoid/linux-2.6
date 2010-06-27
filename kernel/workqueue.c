@@ -283,6 +283,29 @@ int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 }
 EXPORT_SYMBOL_GPL(queue_work);
 
+int modqueue_work(struct workqueue_struct *wq, struct work_struct *work)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modqueue_work)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(wq), "m"(work): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modqueue_work);
+
+SYSCALL_DEFINE2 (modqueue_work, struct workqueue*, wq, struct work_struct*, work)
+{
+        return queue_work(wq, work);
+}
+
 /**
  * queue_work_on - queue work on specific cpu
  * @cpu: CPU number to execute work on
@@ -718,6 +741,29 @@ int cancel_delayed_work_sync(struct delayed_work *dwork)
 }
 EXPORT_SYMBOL(cancel_delayed_work_sync);
 
+int modcancel_delayed_work_sync(struct delayed_work *dwork)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modsysfs_remove_file_from_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(dwork): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcancel_delayed_work_sync);
+
+SYSCALL_DEFINE1 (modcancel_delayed_work_sync, struct delayed_work*, dwork)
+{
+        return cancel_delayed_work_sync(dwork);
+}
+
+
 static struct workqueue_struct *keventd_wq __read_mostly;
 
 /**
@@ -784,6 +830,30 @@ int schedule_delayed_work(struct delayed_work *dwork,
 	return queue_delayed_work(keventd_wq, dwork, delay);
 }
 EXPORT_SYMBOL(schedule_delayed_work);
+
+int modschedule_delayed_work(struct delayed_work *dwork,
+					   unsigned long delay)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modschedule_delayed_work)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(dwork), "m"(delay): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modschedule_delayed_work);
+
+SYSCALL_DEFINE2 (modschedule_delayed_work, struct delayed_work*, dwork, unsigned long, delay)
+{
+        return schedule_delayed_work(dwork, delay);
+}
 
 /**
  * flush_delayed_work - block until a dwork_struct's callback has terminated
@@ -888,7 +958,7 @@ EXPORT_SYMBOL(modflush_scheduled_work);
 SYSCALL_DEFINE0(modflush_scheduled_work)
 {
 	flush_scheduled_work();
-	return;
+	return 0;
 }
 
 /**
@@ -1069,6 +1139,39 @@ struct workqueue_struct *__create_workqueue_key(const char *name,
 }
 EXPORT_SYMBOL_GPL(__create_workqueue_key);
 
+struct workqueue_struct *mod__create_workqueue_key(const char *name,
+						int singlethread,
+						int freezeable,
+						int rt,
+						struct lock_class_key *key,
+						const char *lock_name)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+		"\tmovl %3, %%edx\n"
+		"\tmovl %4, %%esi\n"
+		"\tmovl %5, %%edi\n"
+		"\tpushl %6\n"
+		"\tmovl $"STR(__SR_mod__create_workqueue_key)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m"(ret):"m"(name), "m"(singlethread), "m"(freezeable), "m"(rt), "m"(key), "m"(lock_name):"edi", "esi", "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__create_workqueue_key);
+SYSCALL_DEFINE6(mod__create_workqueue_key, const char *, name, int, singlethread, int, freezeable, int, rt, struct lock_class_key *, key, const char *, lock_name)
+
+{
+	return __create_workqueue_key(name, singlethread, freezeable, rt, key, lock_name);
+}
+
+
 static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
 {
 	/*
@@ -1121,6 +1224,29 @@ void destroy_workqueue(struct workqueue_struct *wq)
 	kfree(wq);
 }
 EXPORT_SYMBOL_GPL(destroy_workqueue);
+
+void moddestroy_workqueue(struct workqueue_struct *wq)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_moddestroy_workqueue)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(wq):"ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddestroy_workqueue);
+
+SYSCALL_DEFINE1(moddestroy_workqueue, struct workqueue_struct*, wq)
+{
+	destroy_workqueue (wq);
+	return 0;
+}
+
 
 static int __devinit workqueue_cpu_callback(struct notifier_block *nfb,
 						unsigned long action,

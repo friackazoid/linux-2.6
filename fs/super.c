@@ -709,6 +709,28 @@ void kill_litter_super(struct super_block *sb)
 
 EXPORT_SYMBOL(kill_litter_super);
 
+void modkill_litter_super(struct super_block *sb)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modkill_litter_super)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(sb): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkill_litter_super);
+
+SYSCALL_DEFINE1 (modkill_litter_super, struct super_block*, sb)
+{
+	kill_litter_super(sb);
+	return 0;
+}
+
 static int ns_test_super(struct super_block *sb, void *data)
 {
 	return sb->s_fs_info == data;
@@ -908,6 +930,39 @@ int get_sb_single(struct file_system_type *fs_type,
 }
 
 EXPORT_SYMBOL(get_sb_single);
+
+typedef fill_super_f (int (*fill_super)(struct super_block*, void*, int));
+
+int modget_sb_single(struct file_system_type *fs_type,
+	int flags, void *data,
+	fill_super_f fsf,
+	struct vfsmount *mnt)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+		 "\tmovl %4, %%esi\n"
+		 "\tmovl %5, %%edi\n"
+	         "\tmovl $"STR(__SR_modget_sb_single)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(fs_type), "m"(flags), "m"(data), "m"(fsf), "m"(mnt): "edi", "esi", "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modget_sb_single);
+
+SYSCALL_DEFINE5 (modget_sb_single, struct file_system_type*, fs_type, int, flags, void*, data, fill_super_f, fsf, struct vfsmount*, mnt)
+{
+	return get_sb_single (fs_type, flags, data, fsf, mnt);
+}
+
 
 struct vfsmount *
 vfs_kern_mount(struct file_system_type *type, int flags, const char *name, void *data)

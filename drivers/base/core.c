@@ -1145,6 +1145,28 @@ name_error:
 	goto done;
 }
 
+int moddevice_add(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	unsigned int ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_moddevice_add)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m" (ret):"m"(dev) :"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_add);
+
+SYSCALL_DEFINE1(moddevice_add, struct device, *dev)
+{
+	return device_add(dev);
+}
+
 /**
  * device_register - register a device with the system.
  * @dev: pointer to the device structure
@@ -1316,6 +1338,27 @@ void device_del(struct device *dev)
 	cleanup_device_parent(dev);
 	kobject_del(&dev->kobj);
 	put_device(parent);
+}
+
+void moddevice_del(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//	unsigned int ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_moddevice_add)", %%eax\n"
+		"\tint $0x80\n"
+		:"=m" (ret):"m"(dev) :"ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_add);
+
+SYSCALL_DEFINE1(moddevice_del, struct device, *dev)
+{
+	return device_del(dev);
 }
 
 /**

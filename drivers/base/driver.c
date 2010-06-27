@@ -110,6 +110,30 @@ int driver_create_file(struct device_driver *drv,
 }
 EXPORT_SYMBOL_GPL(driver_create_file);
 
+void moddriver_create_file(struct device_driver *drv,
+			struct driver_attribute *attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        //unsigned long ret;
+        __asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_moddriver_remove_file)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(drv), "m"(attr): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddriver_create_file);
+
+SYSCALL_DEFINE2(moddriver_create_file, struct device_driver*, dev, struct driver_attribute*, attr)
+{
+	moddriver_create_file(dev, attr);
+	return 0;
+}
+
 /**
  * driver_remove_file - remove sysfs file for driver.
  * @drv: driver.
@@ -228,6 +252,29 @@ void put_driver(struct device_driver *drv)
 }
 EXPORT_SYMBOL_GPL(put_driver);
 
+void modput_driver(struct device_driver *drv)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        //unsigned long ret;
+        __asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modput_driver)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(drv): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modput_driver);
+
+SYSCALL_DEFINE1(modput_driver, struct device_driver*, dev)
+{
+	modput_driver(dev);
+	return 0;
+}
+
+
 static int driver_add_groups(struct device_driver *drv,
 			     const struct attribute_group **groups)
 {
@@ -313,6 +360,28 @@ void driver_unregister(struct device_driver *drv)
 	bus_remove_driver(drv);
 }
 EXPORT_SYMBOL_GPL(driver_unregister);
+
+void moddriver_unregister(struct device_driver *drv)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddriver_unregister)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(drv): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddriver_unregister);
+
+SYSCALL_DEFINE1 (moddriver_unregister, struct device_driver*, drv)
+{
+       driver_unregister (drv);
+       return 0;
+}
 
 /**
  * driver_find - locate driver on a bus by its name.

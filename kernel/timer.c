@@ -798,6 +798,29 @@ int mod_timer_pinned(struct timer_list *timer, unsigned long expires)
 }
 EXPORT_SYMBOL(mod_timer_pinned);
 
+int modmod_timer_pinned(struct timer_list *timer, unsigned long expires)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modmod_timer_pinned)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(timer), "m"(expires): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmod_timer_pinned);
+
+SYSCALL_DEFINE2 (modmod_timer_pinned, struct timer_list*, timer, unsigned long, expires)
+{
+        return mod_timer_pinned(timer, expires);
+}
+
 /**
  * add_timer - start a timer
  * @timer: the timer to be added

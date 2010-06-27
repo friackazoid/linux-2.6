@@ -64,6 +64,27 @@ void down(struct semaphore *sem)
 }
 EXPORT_SYMBOL(down);
 
+void moddown(struct semaphore *sem)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddown)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(sem): "ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddown);
+
+SYSCALL_DEFINE1 (moddown, struct semaphore*, sem)
+{
+        down(sem);
+	return 0;
+}
+
 /**
  * down_interruptible - acquire the semaphore unless interrupted
  * @sem: the semaphore to be acquired
@@ -142,6 +163,29 @@ int down_trylock(struct semaphore *sem)
 	return (count < 0);
 }
 EXPORT_SYMBOL(down_trylock);
+
+int moddown_trylock(struct semaphore *sem)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddown)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m"(ret):"m"(sem): "ebx", "eax");
+
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddown_trylock);
+
+SYSCALL_DEFINE1 (moddown_trylock, struct semaphore*, sem)
+{
+        return down_trylock(sem);
+}
 
 /**
  * down_timeout - acquire the semaphore within a specified time

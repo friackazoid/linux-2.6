@@ -100,6 +100,31 @@ int sysfs_create_group(struct kobject *kobj,
 	return internal_create_group(kobj, 0, grp);
 }
 
+int modsysfs_create_group(struct kobject *kobj,
+		       const struct attribute_group *grp)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modsysfs_create_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(kobj), "m"(grp): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsysfs_create_group);
+
+SYSCALL_DEFINE2 (modsysfs_create_group, struct kobject*, kobj, const struct attribute_group*, grp)
+{
+        return sysfs_create_group (kobj, grp);
+}
+
 /**
  * sysfs_update_group - given a directory kobject, create an attribute group
  * @kobj:	The kobject to create the group on
@@ -146,6 +171,29 @@ void sysfs_remove_group(struct kobject * kobj,
 		sysfs_remove_subdir(sd);
 
 	sysfs_put(sd);
+}
+
+void modsysfs_remove_group(struct kobject * kobj, 
+			const struct attribute_group * grp)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+	         "\tmovl $"STR(__SR_modsysfs_remove_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(kobj), "m"(grp): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsysfs_remove_group);
+
+SYSCALL_DEFINE2 (modsysfs_remove_group, struct kobject*, kobj, const struct attribute_group*, grp)
+{
+        return sysfs_remove_file_from_group(kobj, grp);
 }
 
 

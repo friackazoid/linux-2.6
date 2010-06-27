@@ -12,6 +12,7 @@
 
 #include <asm/system.h>
 #include <asm/atomic.h>
+#include <linux/syscalls.h>
 
 /*
  * lock for reading
@@ -25,6 +26,29 @@ void __sched down_read(struct rw_semaphore *sem)
 }
 
 EXPORT_SYMBOL(down_read);
+
+void __sched moddown_read(struct rw_semaphore *sem)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddown_read)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(sem): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddown_read);
+
+SYSCALL_DEFINE1 (moddown_read, struct rw_semaphore*, sem)
+{
+        down_read(sem);
+	return 0;
+}
+
 
 /*
  * trylock for reading -- returns 1 if successful, 0 if contention
@@ -52,6 +76,29 @@ void __sched down_write(struct rw_semaphore *sem)
 }
 
 EXPORT_SYMBOL(down_write);
+
+void __sched moddown_write(struct rw_semaphore *sem)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddown_write)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(sem): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddown_write);
+
+SYSCALL_DEFINE1 (moddown_write, struct rw_semaphore *, sem)
+{
+        down_write(sem);
+	return 0;
+}
+
 
 /*
  * trylock for writing -- returns 1 if successful, 0 if contention
@@ -90,6 +137,28 @@ void up_write(struct rw_semaphore *sem)
 }
 
 EXPORT_SYMBOL(up_write);
+
+void __sched modup_write(struct rw_semaphore *sem)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modup_write)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(sem): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modup_write);
+
+SYSCALL_DEFINE1 (modup_write, struct rw_semaphore *, sem)
+{
+        up_write(sem);
+	return 0;
+}
 
 /*
  * downgrade write lock to read lock

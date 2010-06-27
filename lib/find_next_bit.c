@@ -103,6 +103,32 @@ found_middle:
 	return result + ffz(tmp);
 }
 EXPORT_SYMBOL(find_next_zero_bit);
+
+unsigned long modfind_next_zero_bit(const unsigned long *addr, unsigned long size,
+				 unsigned long offset)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_modfind_next_zero_bit)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(addr), "m"(size), "m"(offset): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modfind_next_zero_bit);
+
+SYSCALL_DEFINE3 (modfind_next_zero_bit, const unsigned long*, addr, unsigned long, size, unsigned long, offset)
+{
+        return find_next_zero_bit(addr, size, offset);
+}
+
 #endif /* CONFIG_GENERIC_FIND_NEXT_BIT */
 
 #ifdef CONFIG_GENERIC_FIND_FIRST_BIT

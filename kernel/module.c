@@ -978,7 +978,7 @@ EXPORT_SYMBOL(modmodule_put);
 SYSCALL_DEFINE1(modmodule_put, struct module, *module)
 {
 	module_put(module);
-	return;
+	return 0;
 }
 
 #else /* !CONFIG_MODULE_UNLOAD */

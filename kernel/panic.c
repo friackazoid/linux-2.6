@@ -22,6 +22,7 @@
 #include <linux/init.h>
 #include <linux/nmi.h>
 #include <linux/dmi.h>
+#include <linux/syscalls.h>
 
 int panic_on_oops;
 static unsigned long tainted_mask;
@@ -382,6 +383,30 @@ void warn_slowpath_null(const char *file, int line)
 	warn_slowpath_common(file, line, __builtin_return_address(0), NULL);
 }
 EXPORT_SYMBOL(warn_slowpath_null);
+
+void modwarn_slowpath_null(const char *file, int line)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+	         "\tmovl $"STR(__SR_modwarn_slowpath_null)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(file), "m"(line): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modwarn_slowpath_null);
+
+SYSCALL_DEFINE2(modwarn_slowpath_null, const char*, file, int, line)
+{
+        warn_slowpath_null( file, line);
+	return 0;
+}
+
 #endif
 
 #ifdef CONFIG_CC_STACKPROTECTOR

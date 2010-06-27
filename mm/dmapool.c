@@ -322,6 +322,52 @@ void dma_pool_destroy(struct dma_pool *pool)
 }
 EXPORT_SYMBOL(dma_pool_destroy);
 
+void moddma_pool_destroy(struct dma_pool *pool)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddma_pool_destroy)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(pool): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddma_pool_destroy);
+
+SYSCALL_DEFINE1 (moddma_pool_destroy, struct dma_pool*, pool)
+{
+        dma_pool_destroy(pool);
+	return 0;
+}
+oid modsysfs_remove_file_from_group(struct kobject *kobj,
+		const struct attribute *attr, const char *group)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+		 "\tmovl %2, %%edx\n"
+	         "\tmovl $"STR(__SR_modsysfs_remove_file_from_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(kobj), "m"(attr), "m"(group): "edx", "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsysfs_remove_file_from_group);
+
+SYSCALL_DEFINE3 (modsysfs_remove_file_from_group, struct kobject*, kobj, const struct attribute*, attr, const char*, group)
+{
+        return sysfs_remove_file_from_group(kobj, attr, group);
+}
+
+
 /**
  * dma_pool_alloc - get a block of consistent memory
  * @pool: dma pool that will produce the block
@@ -498,6 +544,31 @@ void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
 	spin_unlock_irqrestore(&pool->lock, flags);
 }
 EXPORT_SYMBOL(dma_pool_free);
+
+void moddma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_moddma_pool_free)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(pool), "m"(vaddr), "m"(dma): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddma_pool_free);
+
+SYSCALL_DEFINE3 (moddma_pool_free, struct dma_pool*, pool, void*, vaddr, dma_addr_t, dma)
+{
+        dma_pool_free(pool, vaddr, dma);
+	return 0;
+}
 
 /*
  * Managed DMA pool

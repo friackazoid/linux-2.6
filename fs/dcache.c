@@ -1129,6 +1129,29 @@ struct dentry * d_alloc_root(struct inode * root_inode)
 	return res;
 }
 
+struct dentry * modd_alloc_root(struct inode * root_inode)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modd_alloc_root)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(root_inode): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modd_alloc_root);
+
+SYSCALL_DEFINE1 (modd_alloc_root, struct inode*, root_inode)
+{
+        return d_alloc_root(root_inode);
+}
+
+
 static inline struct hlist_head *d_hash(struct dentry *parent,
 					unsigned long hash)
 {
@@ -1547,6 +1570,27 @@ void d_delete(struct dentry * dentry)
 	spin_unlock(&dcache_lock);
 
 	fsnotify_nameremove(dentry, isdir);
+}
+
+void modd_delete(struct dentry * dentry)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modd_delete)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(dentry): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modd_delete);
+
+SYSCALL_DEFINE1 (modd_delete, struct dentry*, dentry)
+{
+        return d_delete(dentry);
 }
 
 static void __d_rehash(struct dentry * entry, struct hlist_head *list)

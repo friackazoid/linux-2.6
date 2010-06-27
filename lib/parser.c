@@ -10,6 +10,7 @@
 #include <linux/parser.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/syscalls.h>
 
 /**
  * match_one: - Determines if a string matches a simple pattern
@@ -110,6 +111,31 @@ int match_token(char *s, const match_table_t table, substring_t args[])
 	return p->token;
 }
 
+int modmatch_token(char *s, const match_table_t table, substring_t args[])
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_modmatch_token)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(s), "m"(table), "m"(args): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmatch_token);
+
+SYSCALL_DEFINE3 (modmatch_token, char*, s, const match_table_t*, table, substring_t*, args)
+{
+        return match_token(s, table, args);
+}
+
 /**
  * match_number: scan a number in the given base from a substring_t
  * @s: substring to be scanned
@@ -151,6 +177,29 @@ static int match_number(substring_t *s, int *result, int base)
 int match_int(substring_t *s, int *result)
 {
 	return match_number(s, result, 0);
+}
+
+int modmatch_int(substring_t *s, int *result)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modmatch_int)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(s), "m"(result): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modmatch_int);
+
+SYSCALL_DEFINE2 (modmatch_int, substring_t*, s, int*, result)
+{
+        return match_int(s, result);
 }
 
 /**

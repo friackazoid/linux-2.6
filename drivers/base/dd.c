@@ -99,6 +99,28 @@ int device_bind_driver(struct device *dev)
 }
 EXPORT_SYMBOL_GPL(device_bind_driver);
 
+int moddevice_bind_driver(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	unsigned long ret;
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_moddevice_bind_driver)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m"(ret): "m"(dev) :"ebx", "eax");
+
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_bind_driver);
+SYSCALL_DEFINE1(moddevice_bind_driver, struct device, *dev)
+{
+	return device_bind_driver(dev);
+}
+
 static atomic_t probe_count = ATOMIC_INIT(0);
 static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
 
@@ -258,6 +280,29 @@ int device_attach(struct device *dev)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(device_attach);
+
+int moddevice_attach(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddevice_attach)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(dev): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_attach);
+
+SYSCALL_DEFINE1 (moddevice_attach, struct device*, dev)
+{
+        return device_attach(dev);
+}
+
 
 static int __driver_attach(struct device *dev, void *data)
 {
@@ -467,5 +512,6 @@ EXPORT_SYMBOL(moddev_set_drvdata);
 SYSCALL_DEFINE2(moddev_set_drvdata, struct device, *dev, void, *data)
 {
 	dev_set_drvdata(dev, data);
-	return;
+	return 0;
 }
+

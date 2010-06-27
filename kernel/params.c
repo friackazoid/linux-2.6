@@ -262,6 +262,29 @@ int param_set_bool(const char *val, struct kernel_param *kp)
 		*(int *)kp->arg = v;
 	return 0;
 }
+int modparam_set_bool(const char *val, struct kernel_param *kp)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modparam_set_bool)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(val), "m"(kp): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modparam_set_bool);
+
+SYSCALL_DEFINE2 (modparam_set_bool, const char*, val, struct kernel_param*, kp)
+{
+        return param_set_bool(val, kp);
+}
 
 int param_get_bool(char *buffer, struct kernel_param *kp)
 {

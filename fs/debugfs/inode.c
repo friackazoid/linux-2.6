@@ -27,6 +27,7 @@
 #include <linux/fsnotify.h>
 #include <linux/string.h>
 #include <linux/magic.h>
+#include <linux/syscalls.h>
 
 static struct vfsmount *debugfs_mount;
 static int debugfs_mount_count;
@@ -248,6 +249,34 @@ exit:
 }
 EXPORT_SYMBOL_GPL(debugfs_create_file);
 
+struct dentry *moddebugfs_create_file(const char *name, mode_t mode,
+				   struct dentry *parent, void *data,
+				   const struct file_operations *fops)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+		 "\tmovl %4, %%esi\n"
+		 "\tmovl %5, %%edi\n"
+	         "\tmovl $"STR(__SR_moddebugfs_create_file)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(name), "m"(mode), "m"(parent), "m"(data), "m"(fops): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddebugfs_create_file);
+
+SYSCALL_DEFINE5 (moddebugfs_create_file, const char*, name, mode_t, mode, struct dentry*, parent, void*, data, const struct file_operations*, fops)
+{
+        return debugfs_create_file(name, mode, parent, data, fops);
+}
+
 /**
  * debugfs_create_dir - create a directory in the debugfs filesystem
  * @name: a pointer to a string containing the name of the directory to
@@ -370,6 +399,27 @@ void debugfs_remove(struct dentry *dentry)
 	simple_release_fs(&debugfs_mount, &debugfs_mount_count);
 }
 EXPORT_SYMBOL_GPL(debugfs_remove);
+
+void moddebugfs_remove(struct dentry *dentry)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddebugfs_remove)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(dentry): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddebugfs_remove);
+
+SYSCALL_DEFINE1 (moddebugfs_remove, struct dentry*, dentry)
+{
+        debugfs_remove(dentry);
+}
 
 /**
  * debugfs_remove_recursive - recursively removes a directory

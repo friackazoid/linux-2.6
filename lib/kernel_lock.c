@@ -90,6 +90,27 @@ static inline void __lock_kernel(void)
 	}
 }
 
+static inline void __lock_kernel(void)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl $"STR(__SR_modsysfs_remove_file_from_group)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::: "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__lock_kernel);
+
+SYSCALL_DEFINE0 (mod__lock_kernel)
+{
+        __lock_kernel();
+	return 0;
+}
+
 #else
 
 /*

@@ -2005,6 +2005,28 @@ void pci_set_master(struct pci_dev *dev)
 	pcibios_set_master(dev);
 }
 
+void modpci_set_master(struct pci_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modpci_set_master)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(dev): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpci_set_master);
+
+SYSCALL_DEFINE1 (modpci_set_master, struct pci_dev*, dev)
+{
+        pci_set_master(dev);
+	return 0;
+}
+
 /**
  * pci_clear_master - disables bus-mastering for device dev
  * @dev: the PCI device to disable

@@ -4,6 +4,7 @@
  */
 #include <linux/kernel.h>
 #include <linux/dma-mapping.h>
+#include <linux/syscalls.h>
 
 struct dma_coherent_mem {
 	void		*virt_base;
@@ -147,6 +148,33 @@ err:
 }
 EXPORT_SYMBOL(dma_alloc_from_coherent);
 
+int moddma_alloc_from_coherent(struct device *dev, ssize_t size,
+				       dma_addr_t *dma_handle, void **ret)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long _ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+		 "\tmovl %4, %%esi\n"
+	         "\tmovl $"STR(__SR_moddma_alloc_from_coherent)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (_ret):"m"(dev), "m"(size), "m"(dma_handle), "m"(ret): "esi", "edx", "ecx", "ebx", "eax");
+	return _ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddma_alloc_from_coherent);
+
+SYSCALL_DEFINE4 (moddma_alloc_from_coherent, struct device *, dev, ssize_t, size, dma_addr_t *, dma_handle, void **, ret)
+
+{
+        return dma_alloc_from_coherent(dev, size, dma_handle, ret);
+}
+
 /**
  * dma_release_from_coherent() - try to free the memory allocated from per-device coherent memory pool
  * @dev:	device from which the memory was allocated
@@ -174,3 +202,28 @@ int dma_release_from_coherent(struct device *dev, int order, void *vaddr)
 	return 0;
 }
 EXPORT_SYMBOL(dma_release_from_coherent);
+
+int moddma_release_from_coherent(struct device *dev, int order, void *vaddr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_moddma_release_from_coherent)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(dev), "m"(order), "m"(vaddr): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddma_release_from_coherent);
+
+SYSCALL_DEFINE3 (moddma_release_from_coherent, struct device *, dev, int, order, void*, vaddr)
+{
+        return dma_release_from_coherent(dev, order, vaddr);
+}
+

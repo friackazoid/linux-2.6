@@ -1208,6 +1208,35 @@ out_unlock:
 }
 EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
 
+int modkill_pid_info_as_uid(int sig, struct siginfo *info, struct pid *pid,
+		      uid_t uid, uid_t euid, u32 secid)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+		 "\tmovl %4, %%esi\n"
+		 "\tmovl %5, %%edi\n"
+		 "\tpushl %6\n"
+	         "\tmovl $"STR(__SR_modkill_pid_info_as_uid)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(sig), "m"(info), "m"(pid), "m"(uid), "m"(euid), "m"(secid): "edi", "esi", "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkill_pid_info_as_uid);
+
+SYSCALL_DEFINE6 (modkill_pid_info_as_uid, int, sig, struct siginfo*, info, struct pid*, pid, uid_t, uid, uid_t, euid, u32, secid)
+{
+        return kill_pid_info_as_uid(sig, info, pid, uid, euid, secid);
+}
+
+
 /*
  * kill_something_info() interprets pid in interesting ways just like kill(2).
  *

@@ -318,6 +318,34 @@ out2:
 	return err;
 }
 
+int mod__register_chrdev(unsigned int major, unsigned int baseminor,
+		      unsigned int count, const char *name,
+		      const struct file_operations *fops)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+		 "\tmovl %4, %%esi\n"
+		 "\tmovl %5, %%edi\n"
+	         "\tmovl $"STR(__SR_mod__register_chrdev)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(major), "m"(baseminor), "m"(count), "m"(name), "m"(fops): "edi", "esi", "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__register_chrdev);
+
+SYSCALL_DEFINE5 (mod__register_chrdev, unsigned int, major, unsigned int, baseminor, unsigned int, count, const char*, name, const struct file_operations*, fops)
+{
+        return __register_chrdev(major, baseminor, count, name, fops);
+}
+
 /**
  * unregister_chrdev_region() - return a range of device numbers
  * @from: the first in the range of numbers to unregister

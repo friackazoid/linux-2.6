@@ -36,6 +36,28 @@ struct scatterlist *sg_next(struct scatterlist *sg)
 }
 EXPORT_SYMBOL(sg_next);
 
+struct scatterlist *modsg_next(struct scatterlist *sg)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modsg_next)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(sg): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsg_next);
+
+SYSCALL_DEFINE1 (modsg_next, struct scatterlist*, sg)
+{
+        return sg_next(sg);
+}
+
 /**
  * sg_last - return the last scatterlist entry in a list
  * @sgl:	First entry in the scatterlist

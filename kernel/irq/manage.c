@@ -62,6 +62,28 @@ void synchronize_irq(unsigned int irq)
 }
 EXPORT_SYMBOL(synchronize_irq);
 
+void modsynchronize_irq(unsigned int irq)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        //unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+	         "\tmovl $"STR(__SR_modsynchronize_irq)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(irq): "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsynchronize_irq);
+
+SYSCALL_DEFINE1 (modsynchronize_irq, unsigned int, irq)
+{
+        synchronize_irq(irq);
+	return 0;
+}
+
 #ifdef CONFIG_SMP
 cpumask_var_t irq_default_affinity;
 
@@ -999,7 +1021,7 @@ EXPORT_SYMBOL(modfree_irq);
 SYSCALL_DEFINE2(modfree_irq, unsigned int, irq, void, *dev_id)
 {
 	free_irq(irq, dev_id);
-	return;
+	return 0;
 }
 
 /**

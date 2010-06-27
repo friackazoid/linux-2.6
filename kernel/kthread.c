@@ -240,6 +240,29 @@ int kthread_stop(struct task_struct *k)
 }
 EXPORT_SYMBOL(kthread_stop);
 
+int modkthread_stop(struct task_struct *k)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modkthread_stop)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(k): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkthread_stop);
+
+SYSCALL_DEFINE1 (modkthread_stop, struct task_struct*, k)
+{
+        return kthread_stop(k);
+}
+
+
 int kthreadd(void *unused)
 {
 	struct task_struct *tsk = current;
