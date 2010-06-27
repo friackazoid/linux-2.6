@@ -216,6 +216,28 @@ void put_pid(struct pid *pid)
 }
 EXPORT_SYMBOL_GPL(put_pid);
 
+
+void modput_pid(struct pid *pid)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modput_pid)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(pid):"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE1(modput_pid,struct pid *,pid)
+{
+	put_pid(pid);
+	return 0;
+}
+
+
+
 static void delayed_put_pid(struct rcu_head *rhp)
 {
 	struct pid *pid = container_of(rhp, struct pid, rcu);

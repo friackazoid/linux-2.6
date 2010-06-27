@@ -1194,6 +1194,26 @@ pci_disable_device(struct pci_dev *dev)
 	dev->is_busmaster = 0;
 }
 
+
+void modpci_disable_device(struct pci_dev *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modpci_disable_device)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev):"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modpci_disable_device);
+SYSCALL_DEFINE1(modpci_disable_device, struct pci_dev *,dev)
+{
+	pci_disable_device(dev);
+	return 0;
+}
+
 /**
  * pcibios_set_pcie_reset_state - set reset state for device dev
  * @dev: the PCI-E device reset

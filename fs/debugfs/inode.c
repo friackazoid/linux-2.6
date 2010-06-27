@@ -303,6 +303,15 @@ struct dentry *debugfs_create_dir(const char *name, struct dentry *parent)
 }
 EXPORT_SYMBOL_GPL(debugfs_create_dir);
 
+struct dentry *moddebugfs_create_dir(const char *name, struct dentry *parent)
+{
+	return debugfs_create_file(name, 
+				   S_IFDIR | S_IRWXU | S_IRUGO | S_IXUGO,
+				   parent, NULL, NULL);
+}
+EXPORT_SYMBOL_GPL(moddebugfs_create_dir);
+
+
 /**
  * debugfs_create_symlink- create a symbolic link in the debugfs filesystem
  * @name: a pointer to a string containing the name of the symbolic link to

@@ -427,6 +427,28 @@ void device_release_driver(struct device *dev)
 }
 EXPORT_SYMBOL_GPL(device_release_driver);
 
+
+void moddevice_release_driver(struct device *dev)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_moddevice_release_driver)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_release_driver);
+SYSCALL_DEFINE2(moddevice_release_driver, struct device *,dev)
+{
+	device_release_driver(dev);
+	return 0;
+}
+
+
+
 /**
  * driver_detach - detach driver from all devices it controls.
  * @drv: driver.
@@ -504,7 +526,7 @@ void moddev_set_drvdata(struct device *dev, void *data)
 		"\tmovl %1, %%ecx\n"
 		"\tmovl $"STR(__SR_moddev_set_drvdata)", %%eax\n"
 		"\tint $0x80\n"
-		::"m"(dev), "m"(data) :"ebx", "eax");
+		::"m"(dev), "m"(data) :"ebx", "eax","ecx");
 #undef STR
 #undef __STR
 }

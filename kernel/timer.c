@@ -930,6 +930,29 @@ int del_timer(struct timer_list *timer)
 }
 EXPORT_SYMBOL(del_timer);
 
+int moddel_timer(struct timer_list *timer)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	int ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modadd_timer)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m"(ret):"m"(timer) :"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddel_timer);
+SYSCALL_DEFINE1(moddel_timer, struct timer_list, *timer)
+{
+	return del_timer(timer);
+}
+
+
+
 #ifdef CONFIG_SMP
 /**
  * try_to_del_timer_sync - Try to deactivate a timer
@@ -1782,6 +1805,28 @@ void msleep(unsigned int msecs)
 }
 
 EXPORT_SYMBOL(msleep);
+
+void modmsleep(unsigned int msecs)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_modmsleep)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(msecs):"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE1(modmsleep,unsigned int, msecs)
+{
+	msleep(msecs);
+	return 0;
+}
+
+
+
 
 /**
  * msleep_interruptible - sleep waiting for signals

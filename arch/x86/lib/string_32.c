@@ -202,7 +202,33 @@ size_t strlen(const char *s)
 	return res;
 }
 EXPORT_SYMBOL(strlen);
+
+
+int modstrlen(const char *s)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	int ret;	
+	__asm__ __volatile__ (
+		"\tmovl %1, %%ebx\n"
+		"\tmovl $"STR(__SR_modstrlen)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m"(ret):"m"(s) :"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modstrlen);
+SYSCALL_DEFINE1(modstrlen, const char *,s)
+{
+	return strlen(s);
+}
+
 #endif
+
+
+
 
 #ifdef __HAVE_ARCH_MEMCHR
 void *memchr(const void *cs, int c, size_t count)

@@ -228,7 +228,7 @@ void modfinish_wait(wait_queue_head_t *q, wait_queue_t *wait)
 	         "\tmovl $"STR(__SR_modfinish_wait)", %%eax\n"
 		 "\tint $0x80\n"
 		 ::"m"(q), "m"(wait): "ecx", "ebx", "eax");
-	return;
+	return 0;
 #undef STR
 #undef __STR
 }
@@ -282,6 +282,36 @@ int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *
 	return ret;
 }
 EXPORT_SYMBOL(autoremove_wake_function);
+
+
+int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+		 "\tmovl %4, %%esi\n"
+	         "\tmovl $"STR(__SR_modautoremove_wake_function)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(wait), "m"(mode), "m"(sync),"m"(key): "edx", "ecx", "ebx", "eax","esi");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modautoremove_wake_function);
+
+SYSCALL_DEFINE4 (modautoremove_wake_function, wait_queue_t *,wait, unsigned, mode, int, sync, void *,key)
+{
+        return autoremove_wake_function(wait, mode, sync, key);
+}
+
+
+
+
 
 int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
 {

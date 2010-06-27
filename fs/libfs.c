@@ -523,6 +523,33 @@ int simple_pin_fs(struct file_system_type *type, struct vfsmount **mount, int *c
 	return 0;
 }
 
+int modsimple_pin_fs(struct file_system_type *type, struct vfsmount **mount, int *count)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_modsimple_pin_fs)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(kobj), "m"(attr), "m"(group): "edx", "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsimple_pin_fs);
+
+SYSCALL_DEFINE3 (modsimple_pin_fs, struct file_system_type *,type, struct vfsmount **,mount, int *,count)
+{
+        return simple_pin_fs(type,mount,count);
+}
+
+
+
 void simple_release_fs(struct vfsmount **mount, int *count)
 {
 	struct vfsmount *mnt;

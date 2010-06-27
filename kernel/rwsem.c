@@ -126,6 +126,26 @@ void up_read(struct rw_semaphore *sem)
 
 EXPORT_SYMBOL(up_read);
 
+
+void modup_read(struct rw_semaphore *sem)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modup_read)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(sem) :"ebx", "eax");
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE1(modup_read, struct rw_semaphore *, sem)
+{
+	up_read(sem);
+	return 0;
+}
+
+
 /*
  * release a write lock
  */

@@ -726,6 +726,30 @@ int cancel_work_sync(struct work_struct *work)
 }
 EXPORT_SYMBOL_GPL(cancel_work_sync);
 
+
+int modcancel_work_sync(struct work_struct *work)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	int ret;
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modcancel_work_sync)", %%eax\n"
+		"\tint $0x80\n"
+		"\tmovl %%eax, %0\n"
+		:"=m"(ret):"m"(work):"ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcancel_work_sync);
+SYSCALL_DEFINE1(modcancel_work_sync, struct work_struct *,work)
+{
+	return cancel_work_sync(work);
+}
+
+
+
 /**
  * cancel_delayed_work_sync - reliably kill off a delayed work.
  * @dwork: the delayed work struct

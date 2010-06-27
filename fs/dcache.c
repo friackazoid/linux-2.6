@@ -259,6 +259,30 @@ kill_it:
 		goto repeat;
 }
 
+
+
+void moddput(struct dentry *dentry)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_moddput)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dentry):"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddput);
+SYSCALL_DEFINE1(moddput, struct dentry *,dentry)
+{
+	dput(dentry);
+	return 0;
+}
+
+
+
+
 /**
  * d_invalidate - invalidate a dentry
  * @dentry: dentry to invalidate

@@ -577,6 +577,26 @@ void device_remove_bin_file(struct device *dev, struct bin_attribute *attr)
 }
 EXPORT_SYMBOL_GPL(device_remove_bin_file);
 
+void moddevice_remove_bin_file(struct device *dev, struct device_attribute *attr)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_moddevice_remove_bin_file)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(dev), "m"(attr) :"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE2(moddevice_remove_bin_file, struct device, *dev, struct device_attribute, *attr)
+{
+	device_remove_bin_file(dev, attr);
+	return 0;
+}
+
+
 /**
  * device_schedule_callback_owner - helper to schedule a callback for a device
  * @dev: device.
@@ -1777,6 +1797,28 @@ void device_destroy(struct class *class, dev_t devt)
 	}
 }
 EXPORT_SYMBOL_GPL(device_destroy);
+
+void moddevice_destroy(struct class *class, dev_t devt)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_moddevice_destroy)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(class),"dev_t"(devt):"ebx", "eax","ecx");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(moddevice_destroy);
+SYSCALL_DEFINE2(moddevice_destroy, struct class *,class, dev_t, devt)
+{
+	device_destroy(class,devt);
+	return 0;
+}
+
+
 
 /**
  * device_rename - renames a device

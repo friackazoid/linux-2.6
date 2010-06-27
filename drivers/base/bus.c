@@ -981,6 +981,31 @@ out:
 }
 EXPORT_SYMBOL_GPL(bus_register);
 
+
+int modbus_register(struct bus_type *bus)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_modbus_register)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(bus): "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modbus_register);
+
+SYSCALL_DEFINE1 (modbus_register, struct bus_type*, bus){
+        return bus_register(bus);
+}
+
+
+
+
 /**
  * bus_unregister - remove a bus from the system
  * @bus: bus.

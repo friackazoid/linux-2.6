@@ -2892,6 +2892,27 @@ void *__kmalloc(size_t size, gfp_t flags)
 }
 EXPORT_SYMBOL(__kmalloc);
 
+
+void mod__kmalloc(size_t size, gfp_t flags)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl $"STR(__SR_mod__kmalloc)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(size), "m"(flags) :"ebx", "ecx", "eax");
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE2(mod__kmalloc, size_t, size, gfp_t, flags)
+{
+	__kmalloc(size, flags);
+	return 0;
+}
+
+
 static void *kmalloc_large_node(size_t size, gfp_t flags, int node)
 {
 	struct page *page;

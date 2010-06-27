@@ -209,6 +209,14 @@ int utf16s_to_utf8s(const wchar_t *pwcs, int len, enum utf16_endian endian,
 }
 EXPORT_SYMBOL(utf16s_to_utf8s);
 
+int modutf16s_to_utf8s(const wchar_t *pwcs, int len, enum utf16_endian endian,
+		u8 *s, int maxlen)
+{
+	return utf16s_to_utf8s(pwcs,len,endian,s, maxlen);
+
+}
+EXPORT_SYMBOL(modutf16s_to_utf8s);
+
 int register_nls(struct nls_table * nls)
 {
 	struct nls_table ** tmp = &tables;

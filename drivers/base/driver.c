@@ -344,6 +344,30 @@ int driver_register(struct device_driver *drv)
 }
 EXPORT_SYMBOL_GPL(driver_register);
 
+
+int moddriver_register(struct device_driver *drv)
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+	         "\tmovl $"STR(__SR_moddriver_register)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(drv):  "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+SYSCALL_DEFINE1 (driver_register, struct device_driver *, drv)
+{
+        return driver_register(drv);
+}
+
+
+
 /**
  * driver_unregister - remove driver from system.
  * @drv: driver.

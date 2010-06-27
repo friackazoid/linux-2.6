@@ -1253,6 +1253,31 @@ void generic_delete_inode(struct inode *inode)
 }
 EXPORT_SYMBOL(generic_delete_inode);
 
+
+
+
+void modgeneric_delete_inode(struct inode *inode)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl %0, %%ebx\n"
+		"\tmovl $"STR(__SR_modgeneric_delete_inode)", %%eax\n"
+		"\tint $0x80\n"
+		::"m"(inode):"ebx", "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modgeneric_delete_inode);
+SYSCALL_DEFINE1(modgeneric_delete_inode, struct inode *,inode)
+{
+	generic_delete_inode(inode);
+	return 0;
+}
+
+
+
+
 /**
  *	generic_detach_inode - remove inode from inode lists
  *	@inode: inode to remove

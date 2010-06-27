@@ -118,6 +118,33 @@ int kref_put(struct kref *kref, void (*release)(struct kref *kref))
 	return 0;
 }
 
+
+void modkref_put(struct kref *kref,void (*release)(struct kref *kref))
+
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        int ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_modkref_put)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0\n"
+		 :"=m"(ret):"m"(kref),"m"(release): "ebx", "eax","ecx");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modkref_put);
+
+SYSCALL_DEFINE1 (modkref_put, struct kref*, kref,void, (*release)(struct kref *kref))
+{
+        return kref_put(kref,release);
+}
+
+
+
 EXPORT_SYMBOL(kref_set);
 EXPORT_SYMBOL(kref_init);
 EXPORT_SYMBOL(kref_get);

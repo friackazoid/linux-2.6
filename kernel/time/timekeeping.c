@@ -898,6 +898,25 @@ struct timespec current_kernel_time(void)
 }
 EXPORT_SYMBOL(current_kernel_time);
 
+
+void modcurrent_kernel_time(struct device *dev, void *data)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)	
+	__asm__ __volatile__ (
+		"\tmovl $"STR(__SR_modcurrent_kernel_time)", %%eax\n"
+		"\tint $0x80\n"
+		::: "eax");
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modcurrent_kernel_time);
+SYSCALL_DEFINE0(modcurrent_kernel_time, void)
+{
+	current_kernel_time();
+	return 0;
+}
+
 struct timespec get_monotonic_coarse(void)
 {
 	struct timespec now, mono;
