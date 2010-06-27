@@ -178,7 +178,7 @@ ENTRY(mod_call_table)
 	.long sys_mod__printk_ratelimit
 	.long sys_modprepare_to_wait
 	.long sys_modmemcpy
-	.long sys_modkthread_create
+	.long sys_mod_printk
 	.long sys_modkref_init
 	.long sys_modiput
 	.long sys_modget_driver
@@ -195,14 +195,14 @@ ENTRY(mod_call_table)
 	.long sys_modmsecs_to_jiffies
 	.long sys_modschedule_delayed_work
 	.long sys_mod__get_free_pages
-	.long sys_modsimple_dir_operations
+	.long sys_mod_printk
 	.long sys_moddriver_create_file
-	.long sys_modioremap_nocache
+	.long sys_mod_printk
 	.long sys_modbus_register_notifier
 	.long sys_modstrrchr
 	.long sys_modsynchronize_irq
 	.long sys_moddma_alloc_from_coherent
-	.long sys_modcontig_page_data
+	.long sys_mod_printk
 	.long sys_modkill_pid_info_as_uid
 	.long sys_modbus_unregister
 	.long sys_moddown_write
@@ -213,15 +213,15 @@ ENTRY(mod_call_table)
 	.long sys_modmatch_int
 	.long sys_moddma_release_from_coherent
 	.long sys_moddma_pool_free
-	.long sys_modinit_uts_ns
+	.long sys_mod_printk
 	.long sys_modmod_timer
-	.long sys_moddevice_create
+	.long sys_mod_printk
 	.long sys_modput_driver
 	.long sys_moddown
 	.long sys_moddevice_attach
 	.long sys_moddentry_unhash
 	.long sys_moddestroy_workqueue
-	.long sys_moddcache_lock
+	.long sys_mod_printk
 	.long sys_modwarn_slowpath_null
 	.long sys_moddebugfs_remove
 	.long sys_modstrncpy
@@ -229,18 +229,18 @@ ENTRY(mod_call_table)
 	.long sys_moddriver_unregister
 	.long sys_modfind_next_zero_bit
 	.long sys_modd_alloc_root
-	.long sys_modpci_power_names
+	.long sys_mod_printk
 	.long sys_modsysfs_remove_file_from_group
 	.long sys_modsysfs_create_group
 	.long sys_modkthread_stop
-	.long sys_modsscanf
-	.long sys_moddown_trylock
-	.long sys_modmovable_zone
+	.long sys_mod_printk
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_mod_ctype
 	.long sys_moddevice_del
 	.long sys_modkill_litter_super
 	.long sys_moddevice_bind_driver
-	.long sys_modmemset
+	.long sys_mod_printk
 	.long sys_modget_sb_single
 	.long sys_modpci_set_master
 	.long sys_modwait_for_completion
@@ -252,10 +252,10 @@ ENTRY(mod_call_table)
 	.long sys_mod_lock_kernel
 	.long sys_moddma_pool_destroy
 	.long sys_moddebugfs_create_file
-	.long sys_modparam_set_int
+	.long sys_mod_printk
 	.long sys_modstrsep
 	.long sys_modcancel_delayed_work_sync
-	.long sys_modx86_dma_fallback_dev
+	.long sys_mod_printk
 	.long sys_modsg_next
 	.long sys_mod__register_chrdev
 	.long sys_modqueue_work
@@ -265,21 +265,21 @@ ENTRY(mod_call_table)
 	.long sys_modcancel_work_sync
 	.long sys_moddput
 	.long sys_modgeneric_delete_inode
-	.long sys_modutf16s_to_utf8s
+	.long sys_mod_printk
 	.long sys_modpci_disable_device
 	.long sys_modcurrent_kernel_time
 	.long sys_modsimple_release_fs
 	.long sys_modautoremove_wake_function
 	.long sys_modmatch_octal
 	.long sys_modregister_chrdev_region
-	.long sys_modpage_address
+	.long sys_mod_printk
 	.long sys_moddevice_release_driver
 	.long sys_modstrlen
-	.long sys_modiomem_resource
+	.long sys_mod_printk
 	.long sys_moddel_timer
 	.long sys_modparam_get_int
-	.long sys_modmem_map
-	.long sys_moddebugfs_create_dir
+	.long sys_mod_printk
+	.long sys_mod_printk
 	.long sys_modup_read
 	.long sys_moddriver_register
 	.long sys_modput_pid
