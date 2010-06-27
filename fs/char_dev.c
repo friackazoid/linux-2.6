@@ -183,7 +183,7 @@ __unregister_chrdev_region(unsigned major, unsigned baseminor, int minorct)
 	return cd;
 }
 
-static struct char_device_struct *
+/*static struct char_device_struct *
 mod__unregister_chrdev_region(unsigned major, unsigned baseminor, int minorct)
 {
 #define __STR(X) #X
@@ -206,7 +206,7 @@ EXPORT_SYMBOL(mod__unregister_chrdev_region);
 SYSCALL_DEFINE3(mod__unregister_chrdev_region, unsigned, major, unsigned, baseminor, int, minorct)
 {
         return __unregister_chrdev_region( major, baseminor, minorct);
-}
+}*/
 
 
 
