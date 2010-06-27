@@ -561,6 +561,29 @@ void simple_release_fs(struct vfsmount **mount, int *count)
 	mntput(mnt);
 }
 
+void modsimple_release_fs(struct vfsmount **mount, int *count)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+	         "\tmovl $"STR(__SR_modsimple_release_fs)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(mount), "m"(count): "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(modsimple_release_fs);
+
+SYSCALL_DEFINE2 (modsimple_release_fs, struct vfsmount **,mount, int *,count)
+{
+        simple_release_fs(mount,count);
+	return 0;
+}
+
 /**
  * simple_read_from_buffer - copy data from the buffer to user space
  * @to: the user space buffer to read to

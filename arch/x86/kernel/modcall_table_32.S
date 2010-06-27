@@ -128,7 +128,7 @@ ENTRY(mod_call_table)
 	.long sys_modrtc_cmos_read
 	.long sys_modhpet_set_periodic_freq
 	.long sys_mod_printk
-	.long sys_modrtc_update_irq
+	.long sys_mod_printk 
 	.long sys_mod_printk
 	.long sys_mod_printk
 	.long sys_modpnp_unregister_driver
@@ -137,13 +137,13 @@ ENTRY(mod_call_table)
 	.long sys_mod__const_udelay
 	.long sys_modacpi_disable_event
 	.long sys_mod_spin_lock
-	.long sys_modrtc_device_unregister
+	.long sys_mod_printk
 	.long sys_moddev_set_drvdata
 	.long sys_modacpi_install_fixed_event_handler
 	.long sys_modhpet_unregister_irq_handler
 	.long sys_modset_irq_wake
 	.long sys_modsysfs_remove_bin_file
-	.long sys_modrtc_device_register
+	.long sys_mod_printk
 	.long sys_mod__request_region
 	.long sys_modplatform_driver_probe
 	.long sys_modadd_uevent_var
@@ -160,7 +160,7 @@ ENTRY(mod_call_table)
 	.long sys_modlookup_one_len
 	.long sys_modnew_inode
 	.long sys_modcomplete
-	.long sys_modsecurity_task_getsecid
+	.long sys_mod_printk
 	.long sys_moddriver_remove_file
 	.long sys_modinit_special_inode
 	.long sys_modunregister_filesystem
@@ -172,7 +172,7 @@ ENTRY(mod_call_table)
 	.long sys_modsimple_statfs
 	.long sys_modup
 	.long sys_modpci_prepare_to_sleep
-	.long sys_modiounmap
+	.long sys_mod_printk
 	.long sys_moddevice_initialize
 	.long sys_modkref_get
 	.long sys_mod__printk_ratelimit
@@ -185,7 +185,7 @@ ENTRY(mod_call_table)
 	.long sys_modkthread_should_stop
 	.long sys_modfree_pages
 	.long sys_modregister_filesystem
-	.long sys_mod__phys_addr
+	.long sys_mod_printk
 	.long sys_moddevice_create_bin_file
 	.long sys_mod__suspend_report_result
 	.long sys_modwake_up_process
@@ -214,7 +214,7 @@ ENTRY(mod_call_table)
 	.long sys_moddma_release_from_coherent
 	.long sys_moddma_pool_free
 	.long sys_mod_printk
-	.long sys_modmod_timer
+	.long sys_mod_printk
 	.long sys_mod_printk
 	.long sys_modput_driver
 	.long sys_moddown
@@ -224,7 +224,7 @@ ENTRY(mod_call_table)
 	.long sys_mod_printk
 	.long sys_modwarn_slowpath_null
 	.long sys_moddebugfs_remove
-	.long sys_modstrncpy
+	.long sys_mod_printk
 	.long sys_modparam_set_bool
 	.long sys_moddriver_unregister
 	.long sys_modfind_next_zero_bit
@@ -236,7 +236,7 @@ ENTRY(mod_call_table)
 	.long sys_mod_printk
 	.long sys_mod_printk
 	.long sys_mod_printk
-	.long sys_mod_ctype
+	.long sys_mod_printk
 	.long sys_moddevice_del
 	.long sys_modkill_litter_super
 	.long sys_moddevice_bind_driver
@@ -245,7 +245,7 @@ ENTRY(mod_call_table)
 	.long sys_modpci_set_master
 	.long sys_modwait_for_completion
 	.long sys_modd_delete
-	.long sys_modkasprintf
+	.long sys_mod_printk
 	.long sys_moddown_read
 	.long sys_modkstrdup
 	.long sys_modsysfs_remove_group
@@ -260,14 +260,14 @@ ENTRY(mod_call_table)
 	.long sys_mod__register_chrdev
 	.long sys_modqueue_work
 	.long sys_modmatch_token
-	.long sys_mod__get_user_4
+	.long sys_mod_printk
 	.long sys_moddevice_destroy
 	.long sys_modcancel_work_sync
 	.long sys_moddput
 	.long sys_modgeneric_delete_inode
 	.long sys_mod_printk
 	.long sys_modpci_disable_device
-	.long sys_modcurrent_kernel_time
+	.long sys_mod_printk
 	.long sys_modsimple_release_fs
 	.long sys_modautoremove_wake_function
 	.long sys_modmatch_octal
@@ -277,7 +277,7 @@ ENTRY(mod_call_table)
 	.long sys_modstrlen
 	.long sys_mod_printk
 	.long sys_moddel_timer
-	.long sys_modparam_get_int
+	.long sys_mod_printk
 	.long sys_mod_printk
 	.long sys_mod_printk
 	.long sys_modup_read

@@ -90,26 +90,6 @@ static inline void __lock_kernel(void)
 	}
 }
 
-static inline void __lock_kernel(void)
-{
-#define __STR(X) #X
-#define STR(X) __STR(X)
-//        unsigned long ret;
-	 __asm__ __volatile__ (
-	         "\tmovl $"STR(__SR_modsysfs_remove_file_from_group)", %%eax\n"
-		 "\tint $0x80\n"
-		 ::: "eax");
-	return;
-#undef STR
-#undef __STR
-}
-EXPORT_SYMBOL(mod__lock_kernel);
-
-SYSCALL_DEFINE0 (mod__lock_kernel)
-{
-        __lock_kernel();
-	return 0;
-}
 
 #else
 
@@ -149,6 +129,29 @@ void __lockfunc _lock_kernel(const char *func, const char *file, int line)
 		__lock_kernel();
 	}
 	current->lock_depth = depth;
+}
+void __lockfunc mod_lock_kernel(const char *func, const char *file, int line)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	 	"\tmovl %0, %%ebx\n"
+		"\tmovl %1, %%ecx\n"
+		"\tmovl %2, %%edx\n"
+	         "\tmovl $"STR(__SR_mod_lock_kernel)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(func), "m"(file), "m"(line): "edx", "ecx", "ebx", "eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod_lock_kernel);
+
+SYSCALL_DEFINE3 (mod_lock_kernel, const char*, func, const char*, file, int, line)
+{
+        _lock_kernel(func, file, line);
+	return 0;
 }
 
 void __lockfunc _unlock_kernel(const char *func, const char *file, int line)

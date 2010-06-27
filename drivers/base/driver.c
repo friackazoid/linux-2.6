@@ -361,7 +361,9 @@ int moddriver_register(struct device_driver *drv)
 #undef STR
 #undef __STR
 }
-SYSCALL_DEFINE1 (driver_register, struct device_driver *, drv)
+
+EXPORT_SYMBOL_GPL(moddriver_register);
+SYSCALL_DEFINE1 (moddriver_register, struct device_driver *, drv)
 {
         return driver_register(drv);
 }
