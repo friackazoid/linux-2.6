@@ -222,14 +222,14 @@ int modmatch_octal(substring_t *s, int *result)
 {
 #define __STR(X) #X
 #define STR(X) __STR(X)
-        unsigned long ret;
+        int ret;
 	 __asm__ __volatile__ (
 	         "\tmovl %1, %%ebx\n"
 		 "\tmovl %2, %%ecx\n"
 	         "\tmovl $"STR(__SR_modmatch_octal)", %%eax\n"
 		 "\tint $0x80\n"
 		 "\tmovl %%eax, %0"
-		 :"=m" (ret):"m"(s),""(result): "ebx", "ecx","eax");
+		 :"=m" (ret):"m"(s),"m"(result): "ebx", "ecx","eax");
 	return ret;
 #undef STR
 #undef __STR

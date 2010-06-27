@@ -13,6 +13,7 @@
 #include <linux/unistd.h>
 #include <linux/file.h>
 #include <linux/module.h>
+#include <linux/syscalls.h>
 #include <linux/mutex.h>
 #include <trace/events/sched.h>
 

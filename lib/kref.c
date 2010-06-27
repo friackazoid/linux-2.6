@@ -138,7 +138,7 @@ void modkref_put(struct kref *kref,void (*release)(struct kref *kref))
 }
 EXPORT_SYMBOL(modkref_put);
 
-SYSCALL_DEFINE1 (modkref_put, struct kref*, kref,void, (*release)(struct kref *kref))
+SYSCALL_DEFINE2 (modkref_put, struct kref*, kref,void, (*release)(struct kref *kref))
 {
         return kref_put(kref,release);
 }

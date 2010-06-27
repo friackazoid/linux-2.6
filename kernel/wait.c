@@ -284,7 +284,7 @@ int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *
 EXPORT_SYMBOL(autoremove_wake_function);
 
 
-int autoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+int modautoremove_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
 {
 #define __STR(X) #X
 #define STR(X) __STR(X)

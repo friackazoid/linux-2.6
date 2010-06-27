@@ -1374,11 +1374,12 @@ void moddevice_del(struct device *dev)
 #undef STR
 #undef __STR
 }
-EXPORT_SYMBOL(moddevice_add);
+EXPORT_SYMBOL(moddevice_del);
 
 SYSCALL_DEFINE1(moddevice_del, struct device, *dev)
 {
-	return device_del(dev);
+	device_del(dev);
+	return 0;
 }
 
 /**
@@ -1807,7 +1808,7 @@ void moddevice_destroy(struct class *class, dev_t devt)
 		"\tmovl %1, %%ecx\n"
 		"\tmovl $"STR(__SR_moddevice_destroy)", %%eax\n"
 		"\tint $0x80\n"
-		::"m"(class),"dev_t"(devt):"ebx", "eax","ecx");
+		::"m"(class),"m"(devt):"ebx", "eax","ecx");
 #undef STR
 #undef __STR
 }

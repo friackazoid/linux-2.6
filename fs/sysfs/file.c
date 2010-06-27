@@ -663,7 +663,7 @@ void sysfs_remove_file_from_group(struct kobject *kobj,
 	}
 }
 EXPORT_SYMBOL_GPL(sysfs_remove_file_from_group);
-
+/*
 void modsysfs_remove_file_from_group(struct kobject *kobj,
 		const struct attribute *attr, const char *group)
 {
@@ -685,9 +685,10 @@ EXPORT_SYMBOL(modsysfs_remove_file_from_group);
 
 SYSCALL_DEFINE3 (modsysfs_remove_file_from_group, struct kobject*, kobj, const struct attribute*, attr, const char*, group)
 {
-        return sysfs_remove_file_from_group(kobj, attr, group);
+        sysfs_remove_file_from_group(kobj, attr, group);
+	return 0;
 }
-
+*/
 struct sysfs_schedule_callback_struct {
 	struct list_head	workq_list;
 	struct kobject		*kobj;

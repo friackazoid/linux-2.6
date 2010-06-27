@@ -1614,7 +1614,8 @@ EXPORT_SYMBOL(modd_delete);
 
 SYSCALL_DEFINE1 (modd_delete, struct dentry*, dentry)
 {
-        return d_delete(dentry);
+        d_delete(dentry);
+	return 0;
 }
 
 static void __d_rehash(struct dentry * entry, struct hlist_head *list)

@@ -1812,10 +1812,9 @@ void modmsleep(unsigned int msecs)
 #define STR(X) __STR(X)
 	__asm__ __volatile__ (
 		"\tmovl %0, %%ebx\n"
-		"\tmovl %1, %%ecx\n"
 		"\tmovl $"STR(__SR_modmsleep)", %%eax\n"
 		"\tint $0x80\n"
-		::"m"(msecs):"ebx", "ecx", "eax");
+		::"m"(msecs):"ebx", "eax");
 #undef STR
 #undef __STR
 }

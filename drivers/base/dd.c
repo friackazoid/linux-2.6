@@ -440,8 +440,10 @@ void moddevice_release_driver(struct device *dev)
 #undef STR
 #undef __STR
 }
+
 EXPORT_SYMBOL(moddevice_release_driver);
-SYSCALL_DEFINE2(moddevice_release_driver, struct device *,dev)
+
+SYSCALL_DEFINE1 (moddevice_release_driver, struct device *, dev)
 {
 	device_release_driver(dev);
 	return 0;

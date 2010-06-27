@@ -72,6 +72,7 @@ struct path;
 #include <linux/key.h>
 #include <trace/syscall.h>
 
+
 #define __SC_DECL1(t1, a1)	t1 a1
 #define __SC_DECL2(t2, a2, ...) t2 a2, __SC_DECL1(__VA_ARGS__)
 #define __SC_DECL3(t3, a3, ...) t3 a3, __SC_DECL2(__VA_ARGS__)
@@ -852,4 +853,7 @@ asmlinkage long sys_mod_call_usermodehelper (char *path, char **argv, char **env
 
 asmlinkage long sys_mod_kfree (const void *objp);
 asmlinkage long sys_mod_mutex_init (struct mutex *lock);
+
+asmlinkage long sys_mod__unregister_chrdev_region(unsigned major, unsigned baseminor, int minorct);
+
 #endif

@@ -13,6 +13,7 @@
 #include <linux/module.h>
 #include <asm/types.h>
 #include <asm/byteorder.h>
+#include <linux/syscalls.h>
 
 #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
 

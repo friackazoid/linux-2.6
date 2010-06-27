@@ -911,7 +911,7 @@ void modcurrent_kernel_time(struct device *dev, void *data)
 #undef __STR
 }
 EXPORT_SYMBOL(modcurrent_kernel_time);
-SYSCALL_DEFINE0(modcurrent_kernel_time, void)
+SYSCALL_DEFINE0(modcurrent_kernel_time)
 {
 	current_kernel_time();
 	return 0;

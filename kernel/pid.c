@@ -223,10 +223,9 @@ void modput_pid(struct pid *pid)
 #define STR(X) __STR(X)
 	__asm__ __volatile__ (
 		"\tmovl %0, %%ebx\n"
-		"\tmovl %1, %%ecx\n"
 		"\tmovl $"STR(__SR_modput_pid)", %%eax\n"
 		"\tint $0x80\n"
-		::"m"(pid):"ebx", "ecx", "eax");
+		::"m"(pid):"ebx", "eax");
 #undef STR
 #undef __STR
 }

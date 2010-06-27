@@ -2031,7 +2031,7 @@ void modpci_set_master(struct pci_dev *dev)
 #define STR(X) __STR(X)
 //        unsigned long ret;
 	 __asm__ __volatile__ (
-	         "\tmovl %1, %%ebx\n"
+	         "\tmovl %0, %%ebx\n"
 	         "\tmovl $"STR(__SR_modpci_set_master)", %%eax\n"
 		 "\tint $0x80\n"
 		 ::"m"(dev): "ebx", "eax");

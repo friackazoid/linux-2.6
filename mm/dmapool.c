@@ -343,7 +343,7 @@ SYSCALL_DEFINE1 (moddma_pool_destroy, struct dma_pool*, pool)
         dma_pool_destroy(pool);
 	return 0;
 }
-oid modsysfs_remove_file_from_group(struct kobject *kobj,
+void modsysfs_remove_file_from_group(struct kobject *kobj,
 		const struct attribute *attr, const char *group)
 {
 #define __STR(X) #X
@@ -364,7 +364,8 @@ EXPORT_SYMBOL(modsysfs_remove_file_from_group);
 
 SYSCALL_DEFINE3 (modsysfs_remove_file_from_group, struct kobject*, kobj, const struct attribute*, attr, const char*, group)
 {
-        return sysfs_remove_file_from_group(kobj, attr, group);
+        sysfs_remove_file_from_group(kobj, attr, group);
+	return 0;
 }
 
 

@@ -13,6 +13,7 @@
 #include <linux/dcache.h>
 #include <linux/namei.h>
 #include <linux/err.h>
+#include <linux/syscalls.h>
 #include "sysfs.h"
 
 
@@ -191,9 +192,10 @@ void modsysfs_remove_group(struct kobject * kobj,
 }
 EXPORT_SYMBOL(modsysfs_remove_group);
 
-SYSCALL_DEFINE2 (modsysfs_remove_group, struct kobject*, kobj, const struct attribute_group*, grp)
+SYSCALL_DEFINE2(modsysfs_remove_group, struct kobject*, kobj, const struct attribute_group*, grp)
 {
-        return sysfs_remove_file_from_group(kobj, grp);
+        sysfs_remove_group(kobj, grp);
+	return 0;
 }
 
 

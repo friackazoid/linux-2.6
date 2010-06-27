@@ -536,7 +536,7 @@ int modsimple_pin_fs(struct file_system_type *type, struct vfsmount **mount, int
 	         "\tmovl $"STR(__SR_modsimple_pin_fs)", %%eax\n"
 		 "\tint $0x80\n"
 		 "\tmovl %%eax, %0"
-		 :"=m" (ret):"m"(kobj), "m"(attr), "m"(group): "edx", "ecx", "ebx", "eax");
+		 :"=m" (ret):"m"(type), "m"(mount), "m"(count): "edx", "ecx", "ebx", "eax");
 	return ret;
 #undef STR
 #undef __STR

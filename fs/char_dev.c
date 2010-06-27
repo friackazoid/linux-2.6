@@ -183,6 +183,33 @@ __unregister_chrdev_region(unsigned major, unsigned baseminor, int minorct)
 	return cd;
 }
 
+static struct char_device_struct *
+mod__unregister_chrdev_region(unsigned major, unsigned baseminor, int minorct)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %1, %%ebx\n"
+		 "\tmovl %2, %%ecx\n"
+		 "\tmovl %3, %%edx\n"
+	         "\tmovl $"STR(__SR_mod__unregister_chrdev_region)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(major),"m"(baseminor),"m"(minorct): "ebx","ecx" ,"ebx","eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__unregister_chrdev_region);
+
+SYSCALL_DEFINE3(mod__unregister_chrdev_region, unsigned, major, unsigned, baseminor, int, minorct)
+{
+        return __unregister_chrdev_region( major, baseminor, minorct);
+}
+
+
+
 /**
  * register_chrdev_region() - register a range of device numbers
  * @from: the first in the desired range of device numbers; must include
@@ -372,37 +399,6 @@ SYSCALL_DEFINE5 (mod__register_chrdev, unsigned int, major, unsigned int, basemi
 {
         return __register_chrdev(major, baseminor, count, name, fops);
 }
-
-int mod__register_chrdev(unsigned int major, unsigned int baseminor,
-		      unsigned int count, const char *name,
-		      const struct file_operations *fops)
-{
-#define __STR(X) #X
-#define STR(X) __STR(X)
-	int ret;
-	__asm__ __volatile__ (
-		"\tmovl %1, %%ebx\n"
-		"\tmovl %2, %%ecx\n"
-		"\tmovl %4, %%edx\n"
-		"\tmovl %5, %%esi\n"
-		"\tmovl %6, %%edi\n"
-		"\tmovl $"STR(__SR_mod__register_chrdev)", %%eax\n"
-		"\tint $0x80\n"
-		"\tmovl %%eax, %0\n"
-		:"=m"(ret):"m"(major), "m"(baseminor), "m"(count), "m"(name), "m"(fops) :"ebx", "ecx", "eax","edx","esi","edi");
-	return ret;
-#undef STR
-#undef __STR
-}
-EXPORT_SUMBOL(mod__register_chrdev);
-SYSCALL_DEFINE5(mod__register_chrdev, unsigned int, major, unsigned int, baseminor,
-		      unsigned int, count, const char *, name,
-		      const struct file_operations *, fops)
-{
-	return __register_chrdev(major, baseminor, count, name, fops);
-}
-
-
 
 
 /**

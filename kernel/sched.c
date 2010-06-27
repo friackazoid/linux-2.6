@@ -5949,9 +5949,8 @@ void __sched modwait_for_completion(struct completion *x)
 {
 #define __STR(X) #X
 #define STR(X) __STR(X)
-//        unsigned long ret;
 	 __asm__ __volatile__ (
-	         "\tmovl %1, %%ebx\n"
+	         "\tmovl %0, %%ebx\n"
 	         "\tmovl $"STR(__SR_modwait_for_completion)", %%eax\n"
 		 "\tint $0x80\n"
 		 ::"m"(x): "ebx", "eax");

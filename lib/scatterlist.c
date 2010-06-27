@@ -9,6 +9,7 @@
 #include <linux/module.h>
 #include <linux/scatterlist.h>
 #include <linux/highmem.h>
+#include <linux/syscalls.h>
 
 /**
  * sg_next - return the next scatterlist entry in a list
