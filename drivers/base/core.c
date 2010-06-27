@@ -1346,10 +1346,10 @@ void moddevice_del(struct device *dev)
 #define STR(X) __STR(X)
 //	unsigned int ret;
 	__asm__ __volatile__ (
-		"\tmovl %1, %%ebx\n"
+		"\tmovl %0, %%ebx\n"
 		"\tmovl $"STR(__SR_moddevice_add)", %%eax\n"
 		"\tint $0x80\n"
-		:"=m" (ret):"m"(dev) :"ebx", "eax");
+		::"m"(dev) :"ebx", "eax");
 	return;
 #undef STR
 #undef __STR

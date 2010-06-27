@@ -33,7 +33,7 @@ void __sched moddown_read(struct rw_semaphore *sem)
 #define STR(X) __STR(X)
 //        unsigned long ret;
 	 __asm__ __volatile__ (
-	         "\tmovl %1, %%ebx\n"
+	         "\tmovl %0, %%ebx\n"
 	         "\tmovl $"STR(__SR_moddown_read)", %%eax\n"
 		 "\tint $0x80\n"
 		 ::"m"(sem): "ebx", "eax");

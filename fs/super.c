@@ -715,7 +715,7 @@ void modkill_litter_super(struct super_block *sb)
 #define STR(X) __STR(X)
 //        unsigned long ret;
 	 __asm__ __volatile__ (
-	         "\tmovl %1, %%ebx\n"
+	         "\tmovl %0, %%ebx\n"
 	         "\tmovl $"STR(__SR_modkill_litter_super)", %%eax\n"
 		 "\tint $0x80\n"
 		 ::"m"(sb): "ebx", "eax");
