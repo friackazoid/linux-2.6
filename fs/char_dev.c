@@ -442,7 +442,7 @@ EXPORT_SUMBOL(modunregister_chrdev_region);
 SYSCALL_DEFINE2(modunregister_chrdev_region, dev_t, from, unsigned, count)
 {
 	unregister_chrdev_region(from, count);
-	return;
+	return 0;
 }
 
 /**
@@ -466,7 +466,30 @@ void __unregister_chrdev(unsigned int major, unsigned int baseminor,
 		cdev_del(cd->cdev);
 	kfree(cd);
 }
+void mod__unregister_chrdev(unsigned int major, unsigned int baseminor, unsigned int count, const char* name)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+//        unsigned long ret;
+	 __asm__ __volatile__ (
+	         "\tmovl %0, %%ebx\n"
+		 "\tmovl %1, %%ecx\n"
+		 "\tmovl %2, %%edx\n"
+		 "\tmovl %3, %%esi\n"
+	         "\tmovl $"STR(__SR_mod__unregister_chrdev)", %%eax\n"
+		 "\tint $0x80\n"
+		 ::"m"(major),"m"(baseminor),"m"(count), "m"(name): "esi", "ebx","ecx" ,"ebx","eax");
+	return;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__unregister_chrdev);
 
+SYSCALL_DEFINE4 (mod__unregister_chrdev, unsigned int, major, unsigned int, baseminor, unsigned int, count, const char*, name)
+{
+        __unregister_chrdev (major, baseminor, count, name);
+	return 0;
+}
 static DEFINE_SPINLOCK(cdev_lock);
 
 static struct kobject *cdev_get(struct cdev *p)

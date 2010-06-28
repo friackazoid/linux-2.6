@@ -2379,6 +2379,8 @@ static noinline struct module *load_module(void __user *umod,
 	/* Set up MODINFO_ATTR fields */
 	setup_modinfo(mod, sechdrs, infoindex);
 
+	security_module_set_cred (mod);
+
 	/* Fix up syms, so that st_value is a pointer to location. */
 	err = simplify_symbols(sechdrs, symindex, strtab, versindex, pcpuindex,
 			       mod);
@@ -2457,8 +2459,8 @@ static noinline struct module *load_module(void __user *umod,
 	}
 #endif
 
-	//security_module_set_cred (mod);
-	start_security_thread_c (security_module_set_cred, mod);
+	
+	//start_security_thread_c (security_module_set_cred, mod);
 
 	/* Now do relocations. */
 	for (i = 1; i < hdr->e_shnum; i++) {

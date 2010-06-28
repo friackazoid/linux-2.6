@@ -1987,6 +1987,29 @@ unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)
 }
 EXPORT_SYMBOL(__get_free_pages);
 
+unsigned long mod__get_free_pages(gfp_t gfp_mask, unsigned int order)
+{
+#define __STR(X) #X
+#define STR(X) __STR(X)
+        unsigned long ret;
+	 __asm__ __volatile__ (
+	 	"\tmovl %1, %%ebx\n"
+		"\tmovl %2, %%ecx\n"
+	         "\tmovl $"STR(__SR_mod__get_free_pages)", %%eax\n"
+		 "\tint $0x80\n"
+		 "\tmovl %%eax, %0"
+		 :"=m" (ret):"m"(gfp_mask), "m"(order): "ecx", "ebx", "eax");
+	return ret;
+#undef STR
+#undef __STR
+}
+EXPORT_SYMBOL(mod__get_free_pages);
+
+SYSCALL_DEFINE2 (mod__get_free_pages, gfp_t, gfp_mask, unsigned int, order)
+{
+        return __get_free_pages (gfp_mask, order);
+}
+
 unsigned long get_zeroed_page(gfp_t gfp_mask)
 {
 	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);

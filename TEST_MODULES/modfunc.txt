@@ -116,7 +116,7 @@ rtc_cmos_write			#
 rtc_cmos_read			#
 hpet_set_periodic_freq		#
 ioport_resource			? структура
-rtc_update_irq			#
+rtc_update_irq			# release but not in config
 bin2bcd				# без обработчика
 acpi_gbl_FADT			? структура
 pnp_unregister_driver		#
@@ -125,13 +125,13 @@ hpet_set_rtc_irq_bit		#
 __const_udelay			#
 acpi_disable_event		#
 _spin_lock			#
-rtc_device_unregister		#
+rtc_device_unregister		? release but not in config
 dev_set_drvdata			#
 acpi_install_fixed_event_handler# в параметрах указатель на функцию
 hpet_unregister_irq_handler	# в параметрах указатель на функцию
 set_irq_wake			#
 sysfs_remove_bin_file		#
-rtc_device_register		#
+rtc_device_register		? release but not in config
 __request_region		#
 platform_driver_probe		# в параметрах указатель на функцию
 add_uevent_var			# пустышка
@@ -148,7 +148,7 @@ pci_enable_device		#
 lookup_one_len			#
 new_inode			#
 complete			#-- Последняя для Cupper
-security_task_getsecid		-- Первая для friki Точно это? она inline
+security_task_getsecid		?-- Первая для friki inline
 driver_remove_file		#
 init_special_inode		#
 unregister_filesystem		#
@@ -160,7 +160,7 @@ pci_back_from_sleep		#
 simple_statfs		#
 up			#
 pci_prepare_to_sleep	#
-iounmap			#
+iounmap			? release but not in config
 device_initialize	#
 kref_get		#
 __printk_ratelimit	#
@@ -173,7 +173,7 @@ get_driver		#
 kthread_should_stop	#
 free_pages		#
 register_filesystem	#
-__phys_addr		#
+__phys_addr		? release but not in config
 device_create_bin_file	#
 __suspend_report_result	#
 wake_up_process		#
@@ -202,7 +202,7 @@ match_int		#
 dma_release_from_coherent #
 dma_pool_free		#
 init_uts_ns		? struct
-mod_timer		#
+mod_timer		# release but not in config
 device_create		? unknown param
 put_driver		#
 down			#
@@ -212,7 +212,7 @@ destroy_workqueue	#
 dcache_lock		? not funk
 warn_slowpath_null	#
 debugfs_remove		#
-strncpy			#		-- Последняя для friki
+strncpy			#-- Последняя для friki release but not in config
 param_set_bool		#		-- первая для v0land
 driver_unregister	#
 find_next_zero_bit	#
@@ -233,7 +233,7 @@ get_sb_single		#
 pci_set_master		#
 wait_for_completion	#
 d_delete		#
-kasprintf		# unknown para count
+kasprintf		? unknown para count
 down_read		#
 kstrdup			#
 sysfs_remove_group	#
@@ -248,15 +248,15 @@ sg_next			#
 __register_chrdev	#
 queue_work		#
 match_token		#
-__get_user_4		#
+__get_user_4		? not func
 device_destroy
 cancel_work_sync
 dput
 generic_delete_inode
 utf16s_to_utf8s
 pci_disable_device
-current_kernel_time
-simple_release_fs
+current_kernel_time	? unknown ret
+simple_release_fs	#
 autoremove_wake_function
 match_octal
 register_chrdev_region
@@ -265,7 +265,7 @@ device_release_driver
 strlen
 iomem_resource
 del_timer
-param_get_int
+param_get_int		# pustihka
 mem_map
 debugfs_create_dir
 up_read
