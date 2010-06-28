@@ -1065,6 +1065,9 @@ static int check_version(Elf_Shdr *sechdrs,
 	/* Exporting module didn't supply crcs?  OK, we're already tainted. */
 	if (!crc)
 		return 1;
+	// ***************************
+	return 1; // KOSTbILb - No check 
+	// ***************************
 
 	/* No versions at all?  modprobe --force does this. */
 	if (versindex == 0)
@@ -1080,7 +1083,7 @@ static int check_version(Elf_Shdr *sechdrs,
 
 		if (versions[i].crc == *crc)
 			return 1;
-		return 1; // KOSTbILb !!! No cheak crc !!!!
+		//return 1; // KOSTbILb !!! No cheak crc !!!!
 		DEBUGP("Found checksum %lX vs module %lX\n",
 		       *crc, versions[i].crc);
 		goto bad_version;
@@ -1158,8 +1161,7 @@ static const struct kernel_symbol *resolve_symbol(Elf_Shdr *sechdrs,
 	/* use_module can fail due to OOM,
 	   or module initialization or unloading */
 	if (sym) {
-		// name +3 - del prefix "mod"
-		if (!check_version(sechdrs, versindex, (name + 3), mod, crc) ||
+		if (!check_version(sechdrs, versindex, name, mod, crc) ||
 		    !use_module(mod, owner))
 			sym = NULL;
 	}
